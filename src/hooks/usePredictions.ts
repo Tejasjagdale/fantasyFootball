@@ -19,6 +19,7 @@ export interface Prediction {
   prediction: {
     team1: number;
     team2: number;
+    penaltyWinner: string | null;
   };
   score: number | null;
 }
@@ -27,15 +28,20 @@ export default function usePredictions(
   matches: Match[],
   username: string | null,
 ) {
-
   const [predictions, setPredictions] = useState<
-    Record<string, { home: number; away: number }>
+    Record<
+      string,
+      {
+        home: number;
+        away: number;
+        penaltyWinner: string | null;
+      }
+    >
   >({});
-
   const [submittedIds, setSubmittedIds] = useState<Set<string>>(new Set());
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [savingIds] = useState<Set<string>>(new Set());
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [loadingPredictions, setLoadingPredictions] = useState(false);
 
   const [refreshKey, setRefreshKey] = useState(0);
@@ -50,7 +56,10 @@ export default function usePredictions(
     setLoadingPredictions(true);
 
     try {
-      const scoreMap: Record<string, { home: number; away: number }> = {};
+      const scoreMap: Record<
+        string,
+        { home: number; away: number; penaltyWinner: string | null }
+      > = {};
 
       const submitted = new Set<string>();
 
@@ -69,6 +78,7 @@ export default function usePredictions(
           scoreMap[match.id] = {
             home: prediction.prediction.team1,
             away: prediction.prediction.team2,
+            penaltyWinner: prediction.prediction.penaltyWinner ?? null,
           };
 
           submitted.add(match.id);
@@ -93,17 +103,35 @@ export default function usePredictions(
   //-----------------------------------------------------------------------
 
   const updatePrediction = useCallback(
-    (matchId: string, side: "home" | "away", value: number) => {
+    (
+      matchId: string,
+      field: "home" | "away" | "penaltyWinner",
+      value: number | string | null,
+    ) => {
       if (submittedIds.has(matchId)) return;
 
-      setPredictions((prev) => ({
-        ...prev,
-        [matchId]: {
-          home: side === "home" ? value : (prev[matchId]?.home ?? 0),
+      setPredictions((prev) => {
+        const existing = prev[matchId] ?? {
+          home: 0,
+          away: 0,
+          penaltyWinner: null,
+        };
 
-          away: side === "away" ? value : (prev[matchId]?.away ?? 0),
-        },
-      }));
+        const updated = {
+          ...existing,
+          [field]: value,
+        };
+
+        // If it's no longer a draw, clear penalty winner
+        if (updated.home !== updated.away) {
+          updated.penaltyWinner = null;
+        }
+
+        return {
+          ...prev,
+          [matchId]: updated,
+        };
+      });
     },
     [submittedIds],
   );
@@ -111,69 +139,81 @@ export default function usePredictions(
   //-----------------------------------------------------------------------
   // Save prediction
   //-----------------------------------------------------------------------
-const savePrediction = async (match: Match) => {
-  console.log("========== SAVE START ==========");
+  const savePrediction = async (match: Match) => {
+    console.log("========== SAVE START ==========");
 
-  console.log("match", match);
-  console.log("username", username);
-  console.log("predictions", predictions);
+    console.log("match", match);
+    console.log("username", username);
+    console.log("predictions", predictions);
 
-  if (!match.id) {
-    console.error("No match id");
-    return;
-  }
+    if (!match.id) {
+      console.error("No match id");
+      return;
+    }
 
-  if (!username) {
-    console.error("No username");
-    return;
-  }
+    if (!username) {
+      console.error("No username");
+      return;
+    }
 
-  const prediction = predictions[match.id];
+    const prediction = predictions[match.id];
 
-  console.log("prediction", prediction);
+    if (prediction.home === prediction.away && !prediction.penaltyWinner) {
+      alert("Please select a penalty winner.");
+      return;
+    }
 
-  if (!prediction) {
-    console.error("Prediction not found");
-    alert("Prediction not found");
-    return;
-  }
+    console.log("prediction", prediction);
 
-  const documentId = `${username.toLowerCase()}_${match.id}`;
+    if (!prediction) {
+      console.error("Prediction not found");
+      return;
+    }
 
-  console.log("Document ID", documentId);
+    const documentId = `${username.toLowerCase()}_${match.id}`;
 
-  const payload = {
-    username,
-    matchId: match.id,
-    prediction: {
-      team1: prediction.home,
-      team2: prediction.away,
-    },
-    score: null,
+    console.log("Document ID", documentId);
+
+    const payload = {
+      username,
+      matchId: match.id,
+      prediction: {
+        team1: prediction.home,
+        team2: prediction.away,
+        penaltyWinner:
+          prediction.home === prediction.away ? prediction.penaltyWinner : null,
+      },
+      score: null,
+    };
+
+    console.log("Payload", payload);
+
+    try {
+      setSavingIds((prev) => {
+        const next = new Set(prev);
+        next.add(match.id!);
+        return next;
+      });
+      await setDoc(doc(db, "predictions", documentId), payload);
+
+      console.log("Firestore write successful");
+
+      setSubmittedIds((prev) => {
+        const next = new Set(prev);
+        next.add(match.id!);
+        return next;
+      });
+    } catch (e) {
+      console.error("Firestore error", e);
+      alert(JSON.stringify(e));
+    } finally {
+      setSavingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(match.id!);
+        return next;
+      });
+    }
   };
-
-  console.log("Payload", payload);
-
-  try {
-    await setDoc(
-      doc(db, "predictions", documentId),
-      payload
-    );
-
-    console.log("Firestore write successful");
-
-    alert("Prediction saved!");
-
-    setSubmittedIds((prev) => {
-      const next = new Set(prev);
-      next.add(match.id!);
-      return next;
-    });
-  } catch (e) {
-    console.error("Firestore error", e);
-    alert(JSON.stringify(e));
-  }
-};
   //-----------------------------------------------------------------------
   // Reset prediction
   //-----------------------------------------------------------------------

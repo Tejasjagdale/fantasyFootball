@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 
-import { Box, CircularProgress, Container, Typography } from "@mui/material";
+import {
+  Box, CircularProgress, Container, Typography, ToggleButton,
+  ToggleButtonGroup,
+  Badge,
+} from "@mui/material";
 
 import Navbar from "../components/Navbar";
 import LeaderboardDrawer from "../components/LeaderboardDrawer";
@@ -21,12 +26,12 @@ export default function HomePage() {
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-
+  const [view, setView] = useState<"fixtures" | "results">("fixtures");
   const [dialogLoading, setDialogLoading] = useState(false);
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
-  const [dialogPredictions, setDialogPredictions] = useState([]);
+  const [dialogPredictions, setDialogPredictions] = useState<any>([]);
 
 
   useEffect(() => {
@@ -44,7 +49,6 @@ export default function HomePage() {
     predictions,
     submittedIds,
     savingIds,
-    errors,
     updatePrediction,
     savePrediction,
     loadPredictionsForMatch,
@@ -72,14 +76,25 @@ export default function HomePage() {
     }
   };
 
-  const onLogout =() => {
-        localStorage.removeItem("username");
-        localStorage.removeItem("role");
-        navigate("/login")
-    }
-  //------------------------------------------------------------------
-  // Render
-  //------------------------------------------------------------------
+
+  const onLogout = () => {
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
+    navigate("/login")
+  }
+
+  const fixtureMatches = matches.filter(
+    (m) => m.status !== "completed"
+  );
+
+  const completedMatches = matches.filter(
+    (m) => m.status === "completed"
+  );
+
+  const visibleMatches =
+    view === "fixtures"
+      ? fixtureMatches
+      : completedMatches;
 
   return (
     <Box
@@ -90,8 +105,8 @@ export default function HomePage() {
           "radial-gradient(circle at top, rgba(0,230,118,.15), transparent 25%), linear-gradient(180deg,#04101b,#08131f)",
       }}
     >
-      <Navbar onLeaderboardClick={() => setLeaderboardOpen(true)} 
-      username={username ?? ""} onLogout={onLogout} />
+      <Navbar onLeaderboardClick={() => setLeaderboardOpen(true)}
+        username={username ?? ""} onLogout={onLogout} />
 
       <Container
         maxWidth="lg"
@@ -117,6 +132,55 @@ export default function HomePage() {
           Predict every match before kickoff.
         </Typography>
 
+        <Box
+          display="flex"
+          justifyContent="center"
+          mb={5}
+        >
+          <ToggleButtonGroup
+            value={view}
+            exclusive
+            onChange={(_, value) => {
+              if (value) setView(value);
+            }}
+            sx={{
+              background: "rgba(255,255,255,.05)",
+              borderRadius: 3,
+              p: .5,
+            }}
+          >
+            <ToggleButton
+              value="fixtures"
+              sx={{
+                px: 4,
+                textTransform: "none",
+              }}
+            >
+              ⚽ Fixtures
+              <Badge
+                color="primary"
+                badgeContent={fixtureMatches.length}
+                sx={{ ml: 2 }}
+              />
+            </ToggleButton>
+
+            <ToggleButton
+              value="results"
+              sx={{
+                px: 4,
+                textTransform: "none",
+              }}
+            >
+              🏆 Results
+              <Badge
+                color="success"
+                badgeContent={completedMatches.length}
+                sx={{ ml: 2 }}
+              />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+
         {loadingMatches && (
           <Box py={8} display="flex" justifyContent="center">
             <CircularProgress />
@@ -128,7 +192,7 @@ export default function HomePage() {
         )}
 
         <Box display="grid" gap={4} justifyItems="center">
-          {matches.map((match) => {
+          {visibleMatches.map((match) => {
             if (!match.id) return null;
 
             const id = match.id;
@@ -140,12 +204,14 @@ export default function HomePage() {
                 prediction={predictions[id]}
                 saving={savingIds.has(id)}
                 submitted={submittedIds.has(id)}
-                error={errors[id]}
                 onHomeScoreChange={(score) =>
                   updatePrediction(id, "home", score)
                 }
                 onAwayScoreChange={(score) =>
                   updatePrediction(id, "away", score)
+                }
+                onPenaltyWinnerChange={(winner) =>
+                  updatePrediction(id, "penaltyWinner", winner)
                 }
                 onSubmit={() => savePrediction(match)}
                 onViewPredictions={() => openPredictionDialog(match)}

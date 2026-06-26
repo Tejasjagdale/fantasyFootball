@@ -1,52 +1,61 @@
 export function calculateScore(
-    actualHome:number,
-    actualAway:number,
-    predictedHome:number,
-    predictedAway:number
-){
+    actualHome: number,
+    actualAway: number,
+    actualPenaltyWinner: string | null,
+    predictedHome: number,
+    predictedAway: number,
+    predictedPenaltyWinner: string | null
+) {
+    const isActualDraw = actualHome === actualAway;
+    const isPredictedDraw = predictedHome === predictedAway;
 
-    // Jackpot
-    if(
-        actualHome===predictedHome &&
-        actualAway===predictedAway
-    ){
+    // Perfect prediction
+    if (
+        actualHome === predictedHome &&
+        actualAway === predictedAway &&
+        (
+            !isActualDraw ||
+            actualPenaltyWinner === predictedPenaltyWinner
+        )
+    ) {
         return 5;
     }
 
-    let score=0;
-
-    const actualDiff=
-        actualHome-actualAway;
-
-    const predictedDiff=
-        predictedHome-predictedAway;
-
-    const actualOutcome=
-        Math.sign(actualDiff);
-
-    const predictedOutcome=
-        Math.sign(predictedDiff);
+    let score = 0;
 
     // Winner
-    if(actualOutcome===predictedOutcome){
-        score+=2;
+    if (isActualDraw) {
+        if (
+            isPredictedDraw &&
+            actualPenaltyWinner === predictedPenaltyWinner
+        ) {
+            score += 2;
+        }
+    } else {
+        const actualOutcome = Math.sign(actualHome - actualAway);
+        const predictedOutcome = Math.sign(predictedHome - predictedAway);
+
+        if (actualOutcome === predictedOutcome) {
+            score += 2;
+        }
     }
 
-    // Goal difference
-    if(actualDiff===predictedDiff){
-        score+=2;
+    // Goal Difference
+    if (
+        !isActualDraw &&
+        (actualHome - actualAway) === (predictedHome - predictedAway)
+    ) {
+        score += 2;
     }
 
-    // Team score
-
-    if(actualHome===predictedHome){
-        score+=1;
+    // Exact team scores
+    if (actualHome === predictedHome) {
+        score += 1;
     }
 
-    if(actualAway===predictedAway){
-        score+=1;
+    if (actualAway === predictedAway) {
+        score += 1;
     }
 
     return score;
-
 }

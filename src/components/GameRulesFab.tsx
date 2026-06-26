@@ -22,34 +22,38 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 const rules = [
-  {
-    title: "Perfect Prediction",
-    points: 5,
-    icon: <EmojiEventsRoundedIcon />,
-    color: "#FF9800",
-    desc: "Predict the exact final score. This is the highest possible score and does not stack with other bonuses.",
-  },
-  {
-    title: "Correct Match Outcome",
-    points: 2,
-    icon: <EmojiEventsRoundedIcon />,
-    color: "#00E676",
-    desc: "Correctly predict the winner or a draw.",
-  },
-  {
-    title: "Correct Goal Difference",
-    points: 2,
-    icon: <CheckCircleRoundedIcon />,
-    color: "#FFC107",
-    desc: "Predict the correct winning margin (e.g. 2-1 and 3-2 both have a +1 goal difference).",
-  },
-  {
-    title: "One Team's Exact Score",
-    points: 1,
-    icon: <SportsScoreRoundedIcon />,
-    color: "#00BCD4",
-    desc: "Earn 1 bonus point for each team's score you predict exactly.",
-  },
+    {
+        title: "Perfect Prediction",
+        points: 5,
+        icon: <EmojiEventsRoundedIcon />,
+        color: "#FF9800",
+        desc:
+            "Predict the exact regulation-time score. If the match goes to penalties, you must also predict the correct penalty winner. This does not stack with other bonuses.",
+    },
+    {
+        title: "Correct Match Outcome",
+        points: 2,
+        icon: <EmojiEventsRoundedIcon />,
+        color: "#00E676",
+        desc:
+            "Correctly predict the winning team. For drawn matches, you must also predict the correct penalty winner.",
+    },
+    {
+        title: "Correct Goal Difference",
+        points: 2,
+        icon: <CheckCircleRoundedIcon />,
+        color: "#FFC107",
+        desc:
+            "Predict the correct goal difference after regulation time (e.g. 2-1 and 3-2 both have a +1 goal difference). Not applicable for drawn matches.",
+    },
+    {
+        title: "One Team's Exact Score",
+        points: 1,
+        icon: <SportsScoreRoundedIcon />,
+        color: "#00BCD4",
+        desc:
+            "Earn 1 point for each team's regulation-time score predicted exactly.",
+    },
 ];
 
 export default function GameRulesFab() {
@@ -194,15 +198,19 @@ export default function GameRulesFab() {
                             fontWeight={700}
                             gutterBottom
                         >
-                            Example
+                            Examples
                         </Typography>
 
                         <Typography color="rgba(255,255,255,.7)">
-                            Actual score: <b>2-1</b>
+                            <b>Normal Match</b>
                         </Typography>
 
                         <Typography color="rgba(255,255,255,.7)">
-                            Your prediction: <b>2-0</b>
+                            Actual: <b>2-1</b>
+                        </Typography>
+
+                        <Typography color="rgba(255,255,255,.7)">
+                            Prediction: <b>2-0</b>
                         </Typography>
 
                         <Typography
@@ -210,11 +218,38 @@ export default function GameRulesFab() {
                             color="#00E676"
                             fontWeight={700}
                         >
-                            Winner (2) + Team Score (1) = 3 points
+                            Winner (2) + Home Score (1) = 3 points
                         </Typography>
 
-                    </Box>
+                        <Box mt={3} />
 
+                        <Typography color="rgba(255,255,255,.7)">
+                            <b>Penalty Shootout</b>
+                        </Typography>
+
+                        <Typography color="rgba(255,255,255,.7)">
+                            Actual: <b>1-1 (France wins on penalties)</b>
+                        </Typography>
+
+                        <Typography color="rgba(255,255,255,.7)">
+                            Prediction: <b>1-1 (France)</b>
+                        </Typography>
+
+                        <Typography
+                            mt={1}
+                            color="#00E676"
+                            fontWeight={700}
+                        >
+                            Perfect Prediction = 5 points
+                        </Typography>
+
+                        <Typography
+                            mt={1}
+                            color="rgba(255,255,255,.65)"
+                        >
+                            If you predicted <b>1-1</b> but selected <b>Norway</b> as the penalty winner, you would not receive the outcome/perfect prediction points.
+                        </Typography>
+                    </Box>
                 </DialogContent>
 
             </Dialog>

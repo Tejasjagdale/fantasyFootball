@@ -32,6 +32,8 @@ import {
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import SportsSoccerIcon from "@mui/icons-material/SportsSoccer";
+import LockIcon from "@mui/icons-material/Lock";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 
 import { db } from "../firebase/firebase";
 import teams from "../data/teams.json";
@@ -47,6 +49,7 @@ type Match = {
   result: {
     team1: number;
     team2: number;
+    penaltyWinner: string | null;
   } | null;
 };
 
@@ -66,7 +69,7 @@ export default function AdminPage() {
   const [editTeam2, setEditTeam2] = useState<any>(null);
   const [editScore1, setEditScore1] = useState<string>("");
   const [editScore2, setEditScore2] = useState<string>("");
-
+  const [penaltyWinner, setPenaltyWinner] = useState<string | null>(null);
   // Delete confirm dialog state
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingMatch, setDeletingMatch] = useState<Match | null>(null);
@@ -95,10 +98,24 @@ export default function AdminPage() {
       team1: team1.fifa_code,
       team2: team2.fifa_code,
       status: "upcoming",
-      result: null,
+      result: {
+        team1: 0,
+        team2: 0,
+        penaltyWinner: null,
+      },
     });
     setTeam1(null);
     setTeam2(null);
+    loadMatches();
+  };
+
+  const togglePredictionStatus = async (match: Match) => {
+    const ref = doc(db, "matches", match.id);
+
+    await updateDoc(ref, {
+      status: match.status === "upcoming" ? "locked" : "upcoming",
+    });
+
     loadMatches();
   };
 
@@ -132,13 +149,18 @@ export default function AdminPage() {
     setEditMode("result");
     setEditScore1(match.result?.team1?.toString() ?? "");
     setEditScore2(match.result?.team2?.toString() ?? "");
+    setPenaltyWinner(match.result?.penaltyWinner ?? null);
     setEditOpen(true);
+    if (match.result?.team1 !== match.result?.team2) {
+      setPenaltyWinner(null);
+    }
   };
 
   const updatePredictionScores = async (
     matchId: string,
     actualHome: number,
-    actualAway: number
+    actualAway: number,
+    actualPenaltyWinner: string | null
   ) => {
 
     const snapshot = await getDocs(
@@ -157,19 +179,15 @@ export default function AdminPage() {
         const score = calculateScore(
           actualHome,
           actualAway,
+          actualPenaltyWinner,
           data.prediction.team1,
-          data.prediction.team2
+          data.prediction.team2,
+          data.prediction.penaltyWinner ?? null
         );
 
-        await updateDoc(
-          predictionDoc.ref,
-          {
-            score,
-          }
-        );
-
-
-
+        await updateDoc(predictionDoc.ref, {
+          score,
+        });
       })
 
     );
@@ -200,13 +218,18 @@ export default function AdminPage() {
         return;
       }
       await updateDoc(ref, {
-        result: { team1: s1, team2: s2 },
+        result: {
+          team1: s1,
+          team2: s2,
+          penaltyWinner: s1 === s2 ? penaltyWinner : null,
+        },
         status: "completed",
       });
       await updatePredictionScores(
         editingMatch.id,
         s1,
-        s2
+        s2,
+        s1 === s2 ? penaltyWinner : null
       );
     }
 
@@ -317,18 +340,22 @@ export default function AdminPage() {
                       label={match.status ?? "upcoming"}
                       size="small"
                       color={
-                        match.status.toLowerCase() === "completed"
+                        match.status === "completed"
                           ? "success"
-                          : match.status.toLowerCase() === "live"
-                            ? "error"
-                            : "default"
+                          : match.status === "locked"
+                            ? "warning"
+                            : "primary"
                       }
                       variant="outlined"
                     />
 
                     {match.result ? (
                       <Chip
-                        label={`${match.result.team1} – ${match.result.team2}`}
+                        label={
+                          match.result.penaltyWinner
+                            ? `${match.result.team1} – ${match.result.team2} (${match.result.penaltyWinner} pens)`
+                            : `${match.result.team1} – ${match.result.team2}`
+                        }
                         size="small"
                         color="primary"
                       />
@@ -348,6 +375,30 @@ export default function AdminPage() {
 
                 {/* Right: actions */}
                 <Stack direction="row" spacing={0.5} ml={1} flexShrink={0}>
+                  <Tooltip
+                    title={
+                      match.status === "upcoming"
+                        ? "Lock Predictions"
+                        : match.status === "locked"
+                          ? "Open Predictions"
+                          : "Completed matches cannot be reopened"
+                    }
+                  >
+                    <span>
+                      <IconButton
+                        size="small"
+                        color={match.status === "upcoming" ? "warning" : "success"}
+                        disabled={match.status === "completed"}
+                        onClick={() => togglePredictionStatus(match)}
+                      >
+                        {match.status === "upcoming" ? (
+                          <LockIcon />
+                        ) : (
+                          <LockOpenIcon />
+                        )}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
                   <Tooltip title="Edit teams">
                     <IconButton
                       size="small"
@@ -419,27 +470,63 @@ export default function AdminPage() {
               />
             </Stack>
           ) : (
-            <Stack direction="row" spacing={2} mt={1} alignItems="center">
-              <TextField
-                label={editingMatch?.team1 ?? "Home"}
-                value={editScore1}
-                onChange={(e) => setEditScore1(e.target.value)}
-                type="number"
-                inputProps={{ min: 0 }}
-                fullWidth
-              />
-              <Typography variant="h5" flexShrink={0}>
-                –
-              </Typography>
-              <TextField
-                label={editingMatch?.team2 ?? "Away"}
-                value={editScore2}
-                onChange={(e) => setEditScore2(e.target.value)}
-                type="number"
-                inputProps={{ min: 0 }}
-                fullWidth
-              />
-            </Stack>
+            <>
+              <Stack direction="row" spacing={2} mt={1} mb={1} alignItems="center">
+                <TextField
+                  label={editingMatch?.team1 ?? "Home"}
+                  value={editScore1}
+                  onChange={(e) => {
+                    setEditScore1(e.target.value);
+
+                    if (Number(e.target.value) !== Number(editScore2)) {
+                      setPenaltyWinner(null);
+                    }
+                  }}
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  fullWidth
+                />
+                <Typography variant="h5" flexShrink={0}>
+                  –
+                </Typography>
+                <TextField
+                  label={editingMatch?.team2 ?? "Away"}
+                  value={editScore2}
+                  onChange={(e) => {
+                    setEditScore2(e.target.value);
+
+                    if (Number(editScore1) !== Number(e.target.value)) {
+                      setPenaltyWinner(null);
+                    }
+                  }}
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  fullWidth
+                />
+
+              </Stack>
+              {Number(editScore1) === Number(editScore2) && (
+                <Autocomplete
+                  value={
+                    penaltyWinner
+                      ? teams.teams.find((t) => t.fifa_code === penaltyWinner) ?? null
+                      : null
+                  }
+                  onChange={(_, value) =>
+                    setPenaltyWinner(value ? value.fifa_code : null)
+                  }
+                  options={[
+                    teams.teams.find((t) => t.fifa_code === editingMatch?.team1)!,
+                    teams.teams.find((t) => t.fifa_code === editingMatch?.team2)!,
+                  ]}
+                  getOptionLabel={(o) => `${o.name_en} (${o.fifa_code})`}
+                  renderInput={(params) => (
+                    <TextField  {...params} label="Penalty Winner" />
+                  )}
+                />
+              )}
+            </>
+
           )}
         </DialogContent>
 
