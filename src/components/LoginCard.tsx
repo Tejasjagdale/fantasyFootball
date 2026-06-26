@@ -11,6 +11,7 @@ import {
 import SportsSoccerRoundedIcon from "@mui/icons-material/SportsSoccerRounded";
 
 import GlassCard from "./GlassCard";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   onLogin: (username: string) => void;
@@ -18,13 +19,11 @@ type Props = {
 
 export default function LoginCard({ onLogin }: Props) {
   const [username, setUsername] = useState("");
-
+  const navigate = useNavigate();
   const handleContinue = () => {
-    const value = username.trim();
+    const value = username.trim().toLowerCase();
 
     if (!value) return;
-
-    localStorage.setItem("username", value);
 
     onLogin(value);
   };
@@ -75,6 +74,21 @@ export default function LoginCard({ onLogin }: Props) {
             }}
           >
             Continue
+          </Button>
+
+          <Button
+            fullWidth
+            size="large"
+            variant="contained"
+            onClick={()=>{ navigate("/")}}
+            sx={{
+              py: 1.6,
+              fontSize: 16,
+              background:
+                "linear-gradient(90deg,#00E676,#00B8FF)",
+            }}
+          >
+            Home
           </Button>
         </Stack>
       </GlassCard>

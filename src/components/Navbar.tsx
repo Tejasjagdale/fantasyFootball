@@ -1,92 +1,239 @@
 ﻿import SportsSoccerRoundedIcon from "@mui/icons-material/SportsSoccerRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+
 import {
   AppBar,
+  Avatar,
   Box,
-  Button,
+  IconButton,
   Toolbar,
   Typography,
+  Button,
+  Tooltip,
 } from "@mui/material";
+import { useMediaQuery, useTheme } from "@mui/material";
 import { motion } from "framer-motion";
 
 interface Props {
+  username: string;
   onLeaderboardClick: () => void;
+  onLogout: () => void;
 }
 
-export default function Navbar({ onLeaderboardClick }: Props) {
+export default function Navbar({
+  username,
+  onLeaderboardClick,
+  onLogout,
+}: Props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   return (
     <AppBar
       component={motion.div}
-      initial={{ y: -72, opacity: 0 }}
+      initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.45, ease: "easeOut" }}
+      transition={{ duration: .5 }}
+
       elevation={0}
+
       position="sticky"
+
       sx={{
-        top: 16,
-        left: 0,
-        right: 0,
+        mt: 2,
         mx: "auto",
-        width: "min(100%, 1200px)",
-        background: "rgba(12, 20, 34, 0.86)",
-        backdropFilter: "blur(22px)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 18px 60px rgba(0,0,0,0.18)",
+
+        width: "min(96%,1200px)",
+
+        background: "rgba(12,20,34,.78)",
+
+        backdropFilter: "blur(28px)",
+
+        border: "1px solid rgba(255,255,255,.08)",
+
+        borderRadius: 4,
+
+        boxShadow:
+          "0 15px 60px rgba(0,0,0,.35)",
+
       }}
     >
+
       <Toolbar
         sx={{
-          width: "100%",
-          mx: "auto",
+          minHeight: isMobile ? 62 : 74,
           justifyContent: "space-between",
-          gap: 2,
         }}
       >
-        <Box display="flex" alignItems="center" gap={1.5}>
+
+        {/* Logo */}
+
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={isMobile ? 1 : 2}
+        >
+
           <Box
             sx={{
-              display: "grid",
-              placeItems: "center",
-              width: 44,
-              height: 44,
-              borderRadius: "16px",
-              background: "rgba(0, 230, 118, 0.16)",
+              width: isMobile ? 42 : 52,
+              height: isMobile ? 42 : 52,
+              borderRadius: 3,
+
+              background:
+                "linear-gradient(135deg,#00E676,#00BCD4)",
+
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+
+              boxShadow:
+                "0 8px 25px rgba(0,230,118,.35)"
             }}
           >
-            <SportsSoccerRoundedIcon sx={{ color: "#00E676", fontSize: 26 }} />
+
+            <SportsSoccerRoundedIcon
+              sx={{
+                color: "white",
+                fontSize: isMobile ? 24 : 30
+              }}
+            />
+
           </Box>
 
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ letterSpacing: 1.2 }}>
-              Fantasy Football
-            </Typography>
-            <Typography variant="h6" fontWeight={800} letterSpacing={0.4}>
-              Goal Guess
-            </Typography>
-          </Box>
+
+            <Box>
+
+              <Typography
+                fontSize={!isMobile ? 13 : 11}
+                color="rgba(255,255,255,.55)"
+                letterSpacing={2}
+              >
+                FIFA WORLD CUP
+              </Typography>
+
+              <Typography
+                fontSize={!isMobile ? 24 : 18}
+                fontWeight={800}
+              >
+                GoalGuess
+              </Typography>
+
+            </Box>
+          
+
         </Box>
 
-        <Button
-          onClick={onLeaderboardClick}
-          startIcon={<EmojiEventsRoundedIcon />}
-          sx={{
-            textTransform: "none",
-            borderRadius: 3,
-            px: 3,
-            py: 1.25,
-            fontWeight: 700,
-            background: "linear-gradient(90deg, #00E676 0%, #00B8FF 100%)",
-            color: "#000",
-            boxShadow: "0 18px 40px rgba(0, 230, 118, 0.2)",
-            '&:hover': {
-              background: "linear-gradient(90deg, #00B8FF 0%, #00E676 100%)",
-            },
-          }}
-          variant="contained"
+        {/* Right */}
+
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={isMobile ? 1 : 2}
         >
-          Leaderboard
-        </Button>
+
+          <Tooltip title="Leaderboard">
+
+            <IconButton
+
+              onClick={onLeaderboardClick}
+
+              sx={{
+
+                bgcolor: "rgba(255,255,255,.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,.06)",
+
+                "&:hover": {
+                  bgcolor: "#00E676",
+                  color: "#000",
+                }
+
+              }}
+            >
+
+              <EmojiEventsRoundedIcon />
+
+            </IconButton>
+
+          </Tooltip>
+
+          <Box
+
+            display="flex"
+
+            alignItems="center"
+
+            gap={1.5}
+
+            px={isMobile ? 0.7 : 1.5}
+            py={isMobile ? 0.4 : 0.8}
+
+            borderRadius={10}
+
+            bgcolor="rgba(255,255,255,.05)"
+
+            border="1px solid rgba(255,255,255,.06)"
+
+          >
+
+            <Avatar
+              sx={{
+                bgcolor: "#00E676",
+                color: "#000",
+                width: isMobile ? 32 : 34,
+                height: isMobile ? 32 : 34,
+              }}
+            >
+              {username?.charAt(0)?.toUpperCase()}
+            </Avatar>
+
+            {!isMobile && (
+              <Typography fontWeight={700}>
+                {username}
+              </Typography>
+            )}
+
+          </Box>
+
+          <Button
+            onClick={onLogout}
+            startIcon={!isMobile ? <LogoutRoundedIcon /> : undefined}
+
+            sx={{
+              minWidth: isMobile ? 42 : "auto",
+
+              px: isMobile ? 1.2 : 2.5,
+
+              py: 1,
+
+              borderRadius: 8,
+
+              color: "white",
+
+              textTransform: "none",
+
+              bgcolor: "rgba(255,255,255,.05)",
+
+              border: "1px solid rgba(255,255,255,.08)",
+
+              "&:hover": {
+                bgcolor: "#ef4444",
+                borderColor: "#ef4444",
+              },
+            }}
+          >
+
+            {isMobile ? <LogoutRoundedIcon /> : "Logout"}
+
+          </Button>
+        </Box>
+
       </Toolbar>
+
     </AppBar>
+
   );
+
 }

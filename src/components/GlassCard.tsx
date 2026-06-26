@@ -10,17 +10,28 @@ export default function GlassCard({
     <Paper
       component={motion.div}
       whileHover={{
-        y: -5
+        y: -5,
       }}
       transition={{
-        duration: .25
+        duration: 0.25,
       }}
       elevation={0}
       {...props}
       sx={{
-        p: 4,
         position: "relative",
         overflow: "hidden",
+
+        p: {
+          xs: 2,
+          sm: 3,
+          md: 4,
+        },
+
+        borderRadius: {
+          xs: 3,
+          sm: 4,
+          md: 5,
+        },
 
         background:
           "linear-gradient(145deg,#1a2332,#131c29)",
@@ -28,24 +39,42 @@ export default function GlassCard({
         border:
           "1px solid rgba(255,255,255,.08)",
 
-        borderRadius: 5,
-
         boxShadow:
-          "0 30px 60px rgba(0,0,0,.45)",
+          "0 24px 48px rgba(0,0,0,.35)",
 
         ...sx,
 
         "&::before": {
           content: '""',
           position: "absolute",
-          right: -100,
-          top: -100,
-          width: 220,
-          height: 220,
+
+          right: {
+            xs: -60,
+            md: -100,
+          },
+
+          top: {
+            xs: -60,
+            md: -100,
+          },
+
+          width: {
+            xs: 130,
+            md: 220,
+          },
+
+          height: {
+            xs: 130,
+            md: 220,
+          },
+
           borderRadius: "50%",
+
           background:
-            "radial-gradient(#00E67622,transparent)"
-        }
+            "radial-gradient(#00E67622, transparent)",
+
+          pointerEvents: "none",
+        },
       }}
     >
       {children}

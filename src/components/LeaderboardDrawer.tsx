@@ -1,50 +1,143 @@
+/* eslint-disable react-hooks/immutability */
 import {
+  Avatar,
   Box,
+  Chip,
+  CircularProgress,
   Divider,
   Drawer,
-  ToggleButton,
-  ToggleButtonGroup,
+  List,
+  ListItem,
+  Stack,
   Typography,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  collection,
+  getDocs,
+} from "firebase/firestore";
+import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
+import SportsSoccerRoundedIcon from "@mui/icons-material/SportsSoccerRounded";
 
-import LeaderboardRow from "./LeaderboardRow";
+import { db } from "../firebase/firebase";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-const today = [
-  { username: "Rahul", points: 14, exact: 2 },
-  { username: "Tejas", points: 12, exact: 1 },
-  { username: "Om", points: 10, exact: 1 },
-  { username: "Akshay", points: 8, exact: 0 },
-];
-
-const overall = [
-  { username: "Rahul", points: 92, exact: 12 },
-  { username: "Tejas", points: 89, exact: 11 },
-  { username: "Om", points: 81, exact: 8 },
-  { username: "Akshay", points: 70, exact: 6 },
-];
+interface LeaderboardUser {
+  username: string;
+  points: number;
+  exactPredictions: number;
+  predictions: number;
+}
 
 export default function LeaderboardDrawer({
   open,
   onClose,
 }: Props) {
-  const [tab, setTab] = useState<"today" | "overall">(
-    "today"
-  );
 
-  const username = localStorage.getItem("username");
+  const username =
+    localStorage.getItem("username");
 
-  const data = useMemo(
-    () => (tab === "today" ? today : overall),
-    [tab]
+  const [loading, setLoading] =
+    useState(false);
+
+  const [leaderboard, setLeaderboard] =
+    useState<LeaderboardUser[]>([]);
+
+  useEffect(() => {
+
+    if (!open) return;
+
+    loadLeaderboard();
+
+  }, [open]);
+
+  async function loadLeaderboard() {
+
+    setLoading(true);
+
+    try {
+
+      const snapshot =
+        await getDocs(
+          collection(db, "predictions")
+        );
+
+      const map =
+        new Map<string, LeaderboardUser>();
+
+      snapshot.forEach(doc => {
+
+        const data = doc.data();
+
+        const existing =
+          map.get(data.username) ?? {
+
+            username: data.username,
+
+            points: 0,
+
+            exactPredictions: 0,
+
+            predictions: 0,
+
+          };
+
+        existing.points += data.score ?? 0;
+
+        existing.predictions++;
+
+        if ((data.score ?? 0) === 5) {
+          existing.exactPredictions++;
+        }
+
+        map.set(
+          data.username,
+          existing
+        );
+
+      });
+
+      const result =
+        Array.from(map.values())
+          .sort((a, b) => {
+
+            if (b.points !== a.points)
+              return b.points - a.points;
+
+            return (
+              b.exactPredictions -
+              a.exactPredictions
+            );
+
+          });
+
+      setLeaderboard(result);
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  }
+
+  const totalPredictions = useMemo(() =>
+
+    leaderboard.reduce(
+      (sum, u) => sum + u.predictions,
+      0
+    ),
+
+    [leaderboard]
+
   );
 
   return (
+
     <Drawer
       anchor="bottom"
       open={open}
@@ -52,77 +145,166 @@ export default function LeaderboardDrawer({
       PaperProps={{
         sx: {
           height: "80vh",
+          bgcolor: "#09131f",
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
-          px: 3,
-          py: 2,
-          bgcolor: "#09131f",
+          p: 3,
         },
       }}
     >
+
       <Typography
         variant="h4"
-        fontWeight={700}
-        mb={3}
+        fontWeight={800}
+        mb={1}
       >
         🏆 Leaderboard
       </Typography>
 
-      <Box display="flex" justifyContent="center" mb={4}>
-        <ToggleButtonGroup
-          exclusive
-          value={tab}
-          onChange={(_, value) => value && setTab(value)}
-          sx={{
-            bgcolor: "rgba(255,255,255,.05)",
-            borderRadius: 99,
-            p: .5,
-
-            "& .MuiToggleButton-root": {
-              border: 0,
-              borderRadius: 99,
-              px: 3,
-            },
-
-            "& .Mui-selected": {
-              bgcolor: "#00E676 !important",
-              color: "#000",
-            },
-          }}
-        >
-          <ToggleButton value="today">
-            Today
-          </ToggleButton>
-
-          <ToggleButton value="overall">
-            Overall
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
-
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        mb={2}
-        px={1}
+      <Typography
+        color="rgba(255,255,255,.55)"
+        mb={3}
       >
-        <Typography color="text.secondary">
-          Player
-        </Typography>
+        {leaderboard.length} Players • {totalPredictions} Predictions
+      </Typography>
 
-        <Typography color="text.secondary">
-          Points
-        </Typography>
-      </Box>
+      {loading && (
 
-      {data.map((user, index) => (
-        <LeaderboardRow
-          key={user.username}
-          rank={index + 1}
-          user={user}
-          highlight={user.username === username}
-        />
-      ))}
+        <Box
+          display="flex"
+          justifyContent="center"
+          py={8}
+        >
+          <CircularProgress />
+        </Box>
+
+      )}
+
+      {!loading && (
+
+        <List>
+
+          {leaderboard.map((user, index) => {
+
+            const medal =
+              index === 0
+                ? "🥇"
+                : index === 1
+                ? "🥈"
+                : index === 2
+                ? "🥉"
+                : `#${index + 1}`;
+
+            const highlight =
+              user.username === username;
+
+            return (
+
+              <Box
+                key={user.username}
+              >
+
+                <ListItem
+                  sx={{
+                    py: 2,
+                    borderRadius: 3,
+
+                    bgcolor: highlight
+                      ? "rgba(0,230,118,.10)"
+                      : "transparent",
+
+                    border: highlight
+                      ? "1px solid rgba(0,230,118,.25)"
+                      : "1px solid transparent",
+                  }}
+                >
+
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                    width="100%"
+                  >
+
+                    <Typography
+                      fontSize={26}
+                    >
+                      {medal}
+                    </Typography>
+
+                    <Avatar
+                      sx={{
+                        bgcolor:
+                          highlight
+                            ? "#00E676"
+                            : "#2196F3",
+                      }}
+                    >
+                      {user.username
+                        .charAt(0)
+                        .toUpperCase()}
+                    </Avatar>
+
+                    <Box flex={1}>
+
+                      <Typography
+                        fontWeight={700}
+                      >
+                        {user.username}
+
+                        {highlight &&
+                          " (You)"}
+                      </Typography>
+
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        mt={0.5}
+                      >
+
+                        <Chip
+                          size="small"
+                          color="success"
+                          icon={
+                            <EmojiEventsRoundedIcon />
+                          }
+                          label={`${user.points} pts`}
+                        />
+
+                        <Chip
+                          size="small"
+                          color="warning"
+                          icon={
+                            <SportsSoccerRoundedIcon />
+                          }
+                          label={`${user.exactPredictions} perfect`}
+                        />
+
+                      </Stack>
+
+                    </Box>
+
+                  </Stack>
+
+                </ListItem>
+
+                {index !==
+                  leaderboard.length - 1 && (
+                  <Divider />
+                )}
+
+              </Box>
+
+            );
+
+          })}
+
+        </List>
+
+      )}
+
     </Drawer>
+
   );
+
 }
