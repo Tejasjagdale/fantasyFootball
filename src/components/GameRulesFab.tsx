@@ -68,19 +68,54 @@ export default function GameRulesFab() {
                 onClick={() => setOpen(true)}
                 sx={{
                     position: "fixed",
-                    bottom: 28,
-                    right: 28,
+                    bottom: {
+                        xs: 16,
+                        sm: 24,
+                        md: 28,
+                    },
+                    right: {
+                        xs: 16,
+                        sm: 24,
+                        md: 28,
+                    },
                     zIndex: 2000,
-                    width: 64,
-                    height: 64,
+
+                    width: {
+                        xs: 50,
+                        sm: 58,
+                        md: 64,
+                    },
+
+                    height: {
+                        xs: 50,
+                        sm: 58,
+                        md: 64,
+                    },
+
+                    minHeight: {
+                        xs: 50,
+                        sm: 58,
+                        md: 64,
+                    },
+
                     background:
                         "linear-gradient(135deg,#00E676,#00BCD4)",
+
                     color: "#000",
+
                     boxShadow:
                         "0 10px 40px rgba(0,230,118,.45)",
                 }}
             >
-                <HelpRoundedIcon fontSize="large" />
+                <HelpRoundedIcon
+                    sx={{
+                        fontSize: {
+                            xs: 22,
+                            sm: 26,
+                            md: 32,
+                        },
+                    }}
+                />
             </Fab>
 
             <Dialog
