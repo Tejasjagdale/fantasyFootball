@@ -54,7 +54,7 @@ export default function PredictionDialog({
                 sx: {
                     background: "#08131f",
                     color: "white",
-                    borderRadius: 2,
+                    borderRadius: 1,
                     border: "1px solid rgba(255,255,255,.08)",
                 },
             }}
@@ -63,7 +63,7 @@ export default function PredictionDialog({
                 sx={{
                     background: "linear-gradient(135deg,#00E676,#00BCD4)",
                     color: "white",
-                    py: 3,
+                    py: 2,
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-start",
@@ -87,7 +87,7 @@ export default function PredictionDialog({
                     </Box>
 
                     <Box textAlign="center">
-                        <Typography fontWeight={800} fontSize={22}>
+                        <Typography fontWeight={800} fontSize={20}>
                             {match.team1} vs {match.team2}
                         </Typography>
 
@@ -125,7 +125,7 @@ export default function PredictionDialog({
 
             <Divider />
 
-            <DialogContent sx={{ p: 3 }}>
+            <DialogContent sx={{ p: 2 }}>
                 {loading && (
                     <Box display="flex" justifyContent="center" py={8}>
                         <CircularProgress
@@ -155,9 +155,9 @@ export default function PredictionDialog({
                             <Box
                                 key={`${prediction.username}_${prediction.matchId}`}
                                 sx={{
-                                    mb: 2,
-                                    p: 2.5,
-                                    borderRadius: 3,
+                                    mb: 1,
+                                    p: 2,
+                                    borderRadius: 1,
                                     bgcolor: isMe
                                         ? "rgba(0,230,118,.12)"
                                         : "rgba(255,255,255,.04)",
