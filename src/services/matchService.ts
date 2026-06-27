@@ -4,6 +4,10 @@ import {
   doc,
   getDocs,
   onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  Timestamp,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
@@ -12,7 +16,8 @@ export interface Match {
   id?: string;
   team1: string;
   team2: string;
-  status: string;
+  status: "upcoming" | "locked" | "completed";
+  createdOn?: Timestamp;
   result: {
     team1: number;
     team2: number;
@@ -20,13 +25,20 @@ export interface Match {
   } | null;
 }
 
-const matchesRef = collection(db, "matches");
+const matchesRef = query(
+  collection(db, "matches"),
+  orderBy("createdOn", "desc")
+);
 
-export async function createMatch(team1: string, team2: string) {
-  await addDoc(matchesRef, {
+export async function createMatch(
+  team1: string,
+  team2: string
+) {
+  await addDoc(collection(db, "matches"), {
     team1,
     team2,
-    status: "UPCOMING",
+    status: "upcoming",
+    createdOn: serverTimestamp(),
     result: null,
   });
 }
@@ -67,13 +79,24 @@ export async function updateMatch(
 export async function declareResult(
   id: string,
   team1Score: number,
-  team2Score: number
+  team2Score: number,
+  penaltyWinner: string | null
 ) {
   await updateDoc(doc(db, "matches", id), {
-    status: "COMPLETED",
+    status: "completed",
     result: {
       team1: team1Score,
       team2: team2Score,
+      penaltyWinner,
     },
+  });
+}
+
+export async function updateMatchStatus(
+  id: string,
+  status: "upcoming" | "locked" | "completed"
+) {
+  await updateDoc(doc(db, "matches", id), {
+    status,
   });
 }

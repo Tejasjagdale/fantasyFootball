@@ -6,8 +6,12 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -46,6 +50,7 @@ type Match = {
   team1: string;
   team2: string;
   status: string;
+  createdOn?: Timestamp;
   result: {
     team1: number;
     team2: number;
@@ -60,6 +65,7 @@ export default function AdminPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [team1, setTeam1] = useState<any>(null);
   const [team2, setTeam2] = useState<any>(null);
+  const [newUsername, setNewUsername] = useState("");
 
   // Edit dialog state
   const [editOpen, setEditOpen] = useState(false);
@@ -80,6 +86,11 @@ export default function AdminPage() {
       id: doc.id,
       ...(doc.data() as Omit<Match, "id">),
     }));
+    data.sort((a, b) => {
+      const aTime = a.createdOn?.seconds ?? 0;
+      const bTime = b.createdOn?.seconds ?? 0;
+      return bTime - aTime;
+    });
     setMatches(data);
   };
 
@@ -98,6 +109,7 @@ export default function AdminPage() {
       team1: team1.fifa_code,
       team2: team2.fifa_code,
       status: "upcoming",
+      createdOn: serverTimestamp(),
       result: {
         team1: 0,
         team2: 0,
@@ -107,6 +119,28 @@ export default function AdminPage() {
     setTeam1(null);
     setTeam2(null);
     loadMatches();
+  };
+
+  const createUser = async () => {
+    const username = newUsername.trim().toLowerCase();
+
+    if (!username) return;
+
+    const ref = doc(db, "users", username);
+
+    const existing = await getDoc(ref);
+
+    if (existing.exists()) {
+      alert("User already exists");
+      return;
+    }
+
+    await setDoc(ref, {
+      username,
+      role: "user",
+    });
+
+    setNewUsername("");
   };
 
   const togglePredictionStatus = async (match: Match) => {
@@ -255,6 +289,44 @@ export default function AdminPage() {
           Admin Panel
         </Typography>
       </Stack>
+
+      <Card variant="outlined" sx={{ mb: 5 }}>
+        <CardContent>
+
+          <Typography
+            variant="h6"
+            fontWeight={600}
+            mb={3}
+          >
+            Add User
+          </Typography>
+
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+          >
+            <TextField
+              fullWidth
+              label="Username"
+              value={newUsername}
+              onChange={(e) => setNewUsername(e.target.value)}
+            />
+
+            <Button
+              variant="contained"
+              onClick={createUser}
+              disabled={!newUsername.trim()}
+              sx={{
+                minWidth: 150,
+              }}
+            >
+              Add User
+            </Button>
+
+          </Stack>
+
+        </CardContent>
+      </Card>
 
       {/* ── Create Match ── */}
       <Card variant="outlined" sx={{ mb: 5 }}>
