@@ -8,6 +8,7 @@ import {
   setDoc,
   where,
   getDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 import { db } from "../firebase/firebase";
@@ -269,6 +270,26 @@ export default function usePredictions(
     [username],
   );
 
+  const revokePrediction = async (match: Match) => {
+    if (!username || !match.id) return;
+
+    const documentId = `${username.toLowerCase()}_${match.id}`;
+
+    await deleteDoc(doc(db, "predictions", documentId));
+
+    setSubmittedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(match.id!);
+      return next;
+    });
+
+    setPredictions((prev) => {
+      const copy = { ...prev };
+      delete copy[match.id!];
+      return copy;
+    });
+  };
+
   //-----------------------------------------------------------------------
 
   const reload = () => setRefreshKey((k) => k + 1);
@@ -284,5 +305,6 @@ export default function usePredictions(
     loadPredictionsForMatch,
     savingIds,
     reload,
+    revokePrediction
   };
 }

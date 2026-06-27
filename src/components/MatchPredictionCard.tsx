@@ -38,7 +38,7 @@ interface Props {
     onPenaltyWinnerChange: (winner: string | null) => void;
 
     onSubmit: () => Promise<void> | void;
-
+    onRevokePrediction: () => Promise<void> | void;
     onViewPredictions: () => void;
 }
 
@@ -51,6 +51,7 @@ export default function MatchPredictionCard({
     onAwayScoreChange,
     onPenaltyWinnerChange,
     onSubmit,
+    onRevokePrediction,
     onViewPredictions,
 }: Props) {
 
@@ -587,88 +588,71 @@ export default function MatchPredictionCard({
                 >
 
                     <Button
-
                         fullWidth
-
                         size="large"
-
                         variant={
                             submitted
                                 ? "outlined"
                                 : "contained"
                         }
-
                         disabled={
                             submitted ||
                             saving ||
                             match.status !== "upcoming" ||
                             (draw && !prediction?.penaltyWinner)
                         }
-
                         startIcon={
                             submitted
                                 ? <CheckCircleRoundedIcon />
                                 : undefined
                         }
-
                         onClick={onSubmit}
-
                         sx={{
-
                             borderRadius: 3,
-
                             fontWeight: 700,
-
                             textTransform: "none",
-
-                            height: 48
-
+                            height: 48,
                         }}
-
                     >
-
                         {submitted
                             ? "Submitted"
                             : saving
                                 ? "Submitting..."
                                 : "Submit Prediction"}
-
                     </Button>
 
                     {submitted && (
-
                         <Button
-
                             variant="outlined"
-
-                            startIcon={
-                                <GroupsRoundedIcon />
-                            }
-
-                            onClick={
-                                onViewPredictions
-                            }
-
+                            startIcon={<GroupsRoundedIcon />}
+                            onClick={onViewPredictions}
                             sx={{
-
                                 borderRadius: 3,
-
                                 textTransform: "none",
-
-                                minWidth: 130
-
+                                minWidth: 110,
                             }}
-
                         >
-
-                            Predictions
-
+                            View
                         </Button>
-
                     )}
 
-                </Stack>
+                    {submitted &&
+                        match.status === "upcoming" && (
+                            <Button
+                                color="error"
+                                variant="outlined"
+                                onClick={onRevokePrediction}
+                                sx={{
+                                    borderRadius: 3,
+                                    textTransform: "none",
+                                    minWidth: 110,
+                                }}
+                            >
+                                Revoke
+                            </Button>
+                        )}
 
+                </Stack>
                 {match.status === "locked" && (
 
                     <Box

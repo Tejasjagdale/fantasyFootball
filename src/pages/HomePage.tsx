@@ -52,6 +52,7 @@ export default function HomePage() {
     updatePrediction,
     savePrediction,
     loadPredictionsForMatch,
+    revokePrediction
   } = usePredictions(matches, username);
 
   //------------------------------------------------------------------
@@ -212,6 +213,9 @@ export default function HomePage() {
                 }
                 onPenaltyWinnerChange={(winner) =>
                   updatePrediction(id, "penaltyWinner", winner)
+                }
+                onRevokePrediction={() =>
+                  revokePrediction(match)
                 }
                 onSubmit={() => savePrediction(match)}
                 onViewPredictions={() => openPredictionDialog(match)}
