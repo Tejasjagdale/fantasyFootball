@@ -79,7 +79,7 @@ export default function PredictionDialog({
                     <Box display="flex" flexDirection="column" alignItems="center">
                         <Avatar
                             src={homeTeam?.flag}
-                            sx={{ width: 56, height: 56 }}
+                            sx={{ width: 50, height: 50 }}
                         />
                         <Typography mt={1} fontWeight={700}>
                             {homeTeam?.name_en ?? match.team1}
@@ -102,7 +102,7 @@ export default function PredictionDialog({
                     <Box display="flex" flexDirection="column" alignItems="center">
                         <Avatar
                             src={awayTeam?.flag}
-                            sx={{ width: 56, height: 56 }}
+                            sx={{ width: 50, height: 50 }}
                         />
                         <Typography mt={1} fontWeight={700}>
                             {awayTeam?.name_en ?? match.team2}
