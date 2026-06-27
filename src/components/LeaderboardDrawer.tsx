@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/immutability */
 
 import {
-  Avatar,
   Box,
   Chip,
   CircularProgress,
@@ -12,11 +11,18 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+
+import {
+  collection,
+  getDocs,
+} from "firebase/firestore";
+
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import SportsSoccerRoundedIcon from "@mui/icons-material/SportsSoccerRounded";
 import TrackChangesRoundedIcon from "@mui/icons-material/TrackChangesRounded";
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
 
 import { db } from "../firebase/firebase";
 
@@ -36,13 +42,14 @@ export default function LeaderboardDrawer({
   open,
   onClose,
 }: Props) {
-  const username = localStorage.getItem("username");
+  const username =
+    localStorage.getItem("username");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [leaderboard, setLeaderboard] = useState<
-    LeaderboardUser[]
-  >([]);
+  const [leaderboard, setLeaderboard] =
+    useState<LeaderboardUser[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -58,40 +65,53 @@ export default function LeaderboardDrawer({
         collection(db, "predictions")
       );
 
-      const map = new Map<string, LeaderboardUser>();
+      const map = new Map<
+        string,
+        LeaderboardUser
+      >();
 
       snapshot.forEach((doc) => {
         const data = doc.data();
 
-        const existing = map.get(data.username) ?? {
-          username: data.username,
-          points: 0,
-          exactPredictions: 0,
-          predictions: 0,
-        };
+        const existing =
+          map.get(data.username) ?? {
+            username: data.username,
+            points: 0,
+            exactPredictions: 0,
+            predictions: 0,
+          };
 
         existing.points += data.score ?? 0;
+
         existing.predictions++;
 
         if ((data.score ?? 0) === 5) {
           existing.exactPredictions++;
         }
 
-        map.set(data.username, existing);
+        map.set(
+          data.username,
+          existing
+        );
       });
 
-      const result = Array.from(map.values()).sort(
-        (a, b) => {
-          if (b.points !== a.points) {
-            return b.points - a.points;
-          }
+      const result =
+        Array.from(map.values()).sort(
+          (a, b) => {
+            if (
+              b.points !== a.points
+            ) {
+              return (
+                b.points - a.points
+              );
+            }
 
-          return (
-            b.exactPredictions -
-            a.exactPredictions
-          );
-        }
-      );
+            return (
+              b.exactPredictions -
+              a.exactPredictions
+            );
+          }
+        );
 
       setLeaderboard(result);
     } finally {
@@ -99,15 +119,43 @@ export default function LeaderboardDrawer({
     }
   }
 
-  const totalPredictions = useMemo(
-    () =>
-      leaderboard.reduce(
-        (sum, u) => sum + u.predictions,
-        0
-      ),
-    [leaderboard]
-  );
+  const totalPredictions =
+    useMemo(
+      () =>
+        leaderboard.reduce(
+          (sum, u) =>
+            sum + u.predictions,
+          0
+        ),
+      [leaderboard]
+    );
 
+  const currentUser =
+    leaderboard.find(
+      (u) =>
+        u.username === username
+    );
+
+  const currentRank =
+    leaderboard.findIndex(
+      (u) =>
+        u.username === username
+    ) + 1;
+
+  const medal = (
+    index: number
+  ) => {
+    if (index === 0)
+      return "🥇";
+
+    if (index === 1)
+      return "🥈";
+
+    if (index === 2)
+      return "🥉";
+
+    return `#${index + 1}`;
+  };
 
   return (
     <Drawer
@@ -116,66 +164,179 @@ export default function LeaderboardDrawer({
       onClose={onClose}
       PaperProps={{
         sx: {
-          height: "80vh",
+          height: "82vh",
           bgcolor: "#08131f",
+          color: "#fff",
           borderTopLeftRadius: 28,
           borderTopRightRadius: 28,
-          px: 3,
-          py: 3,
-          color: "#fff",
+          overflow: "hidden",
         },
       }}
     >
-      <Typography
-        variant="h4"
-        fontWeight={800}
-        mb={2}
-      >
-        🏆 Leaderboard
-      </Typography>
+      {/* Header */}
 
-      <Stack
-        direction="row"
-        spacing={1}
-        mb={3}
+      <Box
+        sx={{
+          px: 1.5,
+          pt: 1.5,
+          pb: 1,
+          background:
+            "linear-gradient(180deg,#122033,#08131f)",
+          borderBottom:
+            "1px solid rgba(255,255,255,.06)",
+        }}
       >
-        <Chip
-          label={`${leaderboard.length} Players`}
-          sx={{
-            bgcolor: "#162231",
-            color: "#fff",
-          }}
-        />
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box>
+            <Typography
+              fontSize={25}
+              fontWeight={900}
+            >
+              🏆 Leaderboard
+            </Typography>
 
-        <Chip
-          label={`${totalPredictions} Predictions`}
-          sx={{
-            bgcolor: "#162231",
-            color: "#fff",
-          }}
-        />
-      </Stack>
+            <Typography
+              color="rgba(255,255,255,.6)"
+            >
+              Season Standings
+            </Typography>
+          </Box>
+
+          <WorkspacePremiumRoundedIcon
+            sx={{
+              fontSize: 45,
+              color: "#FFD54F",
+              filter:
+                "drop-shadow(0 0 10px rgba(255,213,79,.45))",
+            }}
+          />
+        </Stack>
+
+        <Stack
+          direction="row"
+          spacing={1}
+          mt={1}
+          flexWrap="wrap"
+        >
+          <Chip
+            label={`${leaderboard.length} Players`}
+            sx={{
+              bgcolor: "#162231",
+              color: "#fff",
+            }}
+          />
+
+          <Chip
+            label={`${totalPredictions} Predictions`}
+            sx={{
+              bgcolor: "#162231",
+              color: "#fff",
+            }}
+          />
+
+          {currentUser && (
+            <Chip
+              color="success"
+              label={`Rank #${currentRank}`}
+            />
+          )}
+        </Stack>
+
+        {currentUser && (
+          <Box
+            mt={1}
+            sx={{
+              p: 1.5,
+              borderRadius: 1,
+              background:
+                "linear-gradient(135deg,#00E67622,#00BCD422)",
+              border:
+                "1px solid rgba(0,230,118,.25)",
+            }}
+          >
+            <Typography
+              variant="caption"
+              color="rgba(255,255,255,.65)"
+            >
+              YOUR STANDING
+            </Typography>
+
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Box>
+                <Typography
+                  fontWeight={800}
+                  fontSize={20}
+                >
+                  {currentUser.username}
+                </Typography>
+
+                <Typography
+                  color="rgba(255,255,255,.55)"
+                >
+                  Rank #{currentRank}
+                </Typography>
+              </Box>
+
+              <Box textAlign="right">
+                <Typography
+                  fontSize={30}
+                  fontWeight={900}
+                  color="#00E676"
+                  lineHeight={1}
+                >
+                  {currentUser.points}
+                </Typography>
+
+                <Typography
+                  variant="caption"
+                >
+                  pts
+                </Typography>
+              </Box>
+            </Stack>
+          </Box>
+        )}
+      </Box>
 
       {loading && (
         <Box
           display="flex"
           justifyContent="center"
-          py={10}
+          alignItems="center"
+          height="100%"
         >
           <CircularProgress
-            sx={{ color: "#00E676" }}
+            sx={{
+              color: "#00E676",
+            }}
           />
         </Box>
       )}
 
       {!loading && (
-        <List disablePadding>
+        <List
+          disablePadding
+          sx={{
+            px: 1,
+            py: 1.5,
+            overflowY: "auto",
+          }}
+        >
           {leaderboard.map((user, index) => {
+
             const highlight =
               user.username === username;
 
-            const perfectRate =
-              user.predictions > 0
+            const accuracy =
+              user.predictions
                 ? Math.round(
                   (user.exactPredictions /
                     user.predictions) *
@@ -183,188 +344,174 @@ export default function LeaderboardDrawer({
                 )
                 : 0;
 
+            const top3 =
+              index < 3;
             return (
-              <Box
-                key={user.username}
-              >
+              <Box key={user.username} mb={1.5}>
                 <ListItem
                   sx={{
-                    borderRadius: 2,
-                    mb: 1.5,
-                    py: 2,
-                    px: 2,
-
+                    borderRadius: 1,
+                    px: 1.5,
+                    py: 1,
                     bgcolor: highlight
                       ? "rgba(0,230,118,.10)"
-                      : "rgba(255,255,255,.03)",
+                      : top3
+                        ? "rgba(255,255,255,.05)"
+                        : "rgba(255,255,255,.025)",
 
                     border: highlight
-                      ? "1px solid rgba(0,230,118,.30)"
-                      : "1px solid rgba(255,255,255,.05)",
+                      ? "1px solid rgba(0,230,118,.35)"
+                      : top3
+                        ? "1px solid rgba(255,255,255,.10)"
+                        : "1px solid rgba(255,255,255,.05)",
 
                     transition: ".25s",
 
                     "&:hover": {
-                      transform:
-                        "translateY(-2px)",
-                      bgcolor:
-                        "rgba(255,255,255,.06)",
+                      transform: "translateY(-2px)",
+                      borderColor: "#00E676",
+                      bgcolor: "rgba(255,255,255,.06)",
                     },
                   }}
                 >
                   <Stack
-                    width="100%"
+                    direction="row"
                     spacing={2}
+                    alignItems="center"
+                    width="100%"
                   >
-                    <Stack
-                      direction="row"
-                      spacing={2}
+                    {/* Rank */}
+
+                    <Box
+                      width={42}
+                      display="flex"
+                      justifyContent="center"
                       alignItems="center"
+                      flexShrink={0}
                     >
-                      <Box
-                        sx={{
-                          width: 42,
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          flexShrink: 0,
-                        }}
+                      <Typography
+                        fontSize={28}
+                        fontWeight={800}
                       >
-                        {index === 0 ? (
-                          <Typography
-                            sx={{
-                              fontSize: 30,
-                              filter: "drop-shadow(0 0 8px rgba(255,215,0,.45))",
-                            }}
-                          >
-                            🥇
-                          </Typography>
-                        ) : index === 1 ? (
-                          <Typography
-                            sx={{
-                              fontSize: 30,
-                              filter: "drop-shadow(0 0 8px rgba(192,192,192,.45))",
-                            }}
-                          >
-                            🥈
-                          </Typography>
-                        ) : index === 2 ? (
-                          <Typography
-                            sx={{
-                              fontSize: 30,
-                              filter: "drop-shadow(0 0 8px rgba(205,127,50,.45))",
-                            }}
-                          >
-                            🥉
-                          </Typography>
-                        ) : (
-                          <Typography
-                            sx={{
-                              fontWeight: 800,
-                              fontSize: 18,
-                              color: "rgba(255,255,255,.55)",
-                            }}
-                          >
-                            #{index + 1}
-                          </Typography>
+                        {medal(index)}
+                      </Typography>
+                    </Box>
+
+                    {/* User */}
+
+                    <Box flex={1} minWidth={0}>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                      >
+                        <Typography
+                          fontWeight={800}
+                          noWrap
+                        >
+                          {user.username}
+                        </Typography>
+
+                        {highlight && (
+                          <Chip
+                            size="small"
+                            label="YOU"
+                            color="success"
+                          />
                         )}
-                      </Box>
+                      </Stack>
 
-                      <Avatar
-                        sx={{
-                          background: highlight
-                            ? "linear-gradient(135deg,#00E676,#00BCD4)"
-                            : "linear-gradient(135deg,#4F46E5,#2563EB)",
-                          fontWeight: 700,
-                        }}
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        mt={0.8}
+                        flexWrap="wrap"
                       >
-                        {user.username
-                          .charAt(0)
-                          .toUpperCase()}
-                      </Avatar>
-
-                      <Box flex={1}>
                         <Stack
                           direction="row"
-                          spacing={1}
+                          spacing={0.5}
                           alignItems="center"
                         >
+                          <EmojiEventsRoundedIcon
+                            sx={{
+                              fontSize: 16,
+                              color: "#FFC107",
+                            }}
+                          />
+
                           <Typography
-                            fontWeight={700}
-                            fontSize={17}
+                            variant="caption"
                           >
-                            {user.username}
+                            {user.exactPredictions}
                           </Typography>
-
-                          {highlight && (
-                            <Chip
-                              size="small"
-                              label="YOU"
-                              color="success"
-                            />
-                          )}
                         </Stack>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color:
-                              "rgba(255,255,255,.55)",
-                            mt: 0.3,
-                          }}
+
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          alignItems="center"
                         >
-                          {perfectRate}% perfect prediction rate
-                        </Typography>
-                      </Box>
-                    </Stack>
+                          <TrackChangesRoundedIcon
+                            sx={{
+                              fontSize: 16,
+                              color: "#00BCD4",
+                            }}
+                          />
 
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      flexWrap="wrap"
+                          <Typography
+                            variant="caption"
+                          >
+                            {accuracy}%
+                          </Typography>
+                        </Stack>
+
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          alignItems="center"
+                        >
+                          <SportsSoccerRoundedIcon
+                            sx={{
+                              fontSize: 16,
+                              color: "#90CAF9",
+                            }}
+                          />
+
+                          <Typography
+                            variant="caption"
+                          >
+                            {user.predictions}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    </Box>
+
+                    {/* Points */}
+
+                    <Box
+                      textAlign="right"
+                      flexShrink={0}
                     >
-                      <Chip
-                        size="small"
-                        icon={
-                          <EmojiEventsRoundedIcon />
+                      <Typography
+                        fontSize={25}
+                        fontWeight={900}
+                        color={
+                          top3
+                            ? "#FFD54F"
+                            : "#00E676"
                         }
-                        label={`${user.points} pts`}
-                        sx={{
-                          bgcolor: "#162231",
-                          color: "#fff",
-                          border:
-                            "1px solid rgba(255,255,255,.08)",
-                        }}
-                      />
+                        lineHeight={1}
+                      >
+                        {user.points}
+                      </Typography>
 
-                      <Chip
-                        size="small"
-                        icon={
-                          <SportsSoccerRoundedIcon />
-                        }
-                        label={`${user.exactPredictions} perfect`}
-                        sx={{
-                          bgcolor: "#162231",
-                          color: "#fff",
-                          border:
-                            "1px solid rgba(255,255,255,.08)",
-                        }}
-                      />
-
-                      <Chip
-                        size="small"
-                        icon={
-                          <TrackChangesRoundedIcon />
-                        }
-                        label={`${user.predictions} predictions`}
-                        sx={{
-                          bgcolor: "#162231",
-                          color: "#fff",
-                          border:
-                            "1px solid rgba(255,255,255,.08)",
-                        }}
-                      />
-                    </Stack>
-
+                      <Typography
+                        variant="caption"
+                        color="rgba(255,255,255,.6)"
+                      >
+                        pts
+                      </Typography>
+                    </Box>
                   </Stack>
                 </ListItem>
 
@@ -372,9 +519,9 @@ export default function LeaderboardDrawer({
                   leaderboard.length - 1 && (
                     <Divider
                       sx={{
+                        my: 1,
                         borderColor:
                           "rgba(255,255,255,.05)",
-                        my: 0.5,
                       }}
                     />
                   )}

@@ -196,7 +196,7 @@ export default function MatchPredictionCard({
 
                     alignItems="center"
 
-                    mb={3}
+                    mb={1.5}
 
                 >
 
@@ -329,7 +329,7 @@ export default function MatchPredictionCard({
 
                 </Stack>
 
-                <Box mt={4} />
+                <Box mt={2} />
 
                 <Stack
 
@@ -339,7 +339,7 @@ export default function MatchPredictionCard({
 
                     alignItems="center"
 
-                    spacing={4}
+                    spacing={3}
 
                 >
 
@@ -388,7 +388,7 @@ export default function MatchPredictionCard({
 
                 {draw && (
 
-                    <Box mt={4}>
+                    <Box mt={2}>
 
                         <Typography
 
@@ -509,7 +509,7 @@ export default function MatchPredictionCard({
 
                             <Divider
                                 sx={{
-                                    my: 4
+                                    my: 2
                                 }}
                             />
 
@@ -577,7 +577,7 @@ export default function MatchPredictionCard({
 
                 <Divider
                     sx={{
-                        my: 4
+                        my: 2
                     }}
                 />
 
