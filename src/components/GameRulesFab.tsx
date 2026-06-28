@@ -24,7 +24,7 @@ import { motion } from "framer-motion";
 const rules = [
     {
         title: "Perfect Prediction",
-        points: 5,
+        points: 6,
         icon: <EmojiEventsRoundedIcon />,
         color: "#FF9800",
         desc:
@@ -275,7 +275,7 @@ export default function GameRulesFab() {
                             color="#00E676"
                             fontWeight={700}
                         >
-                            Perfect Prediction = 5 points
+                            Perfect Prediction = 6 points
                         </Typography>
 
                         <Typography

@@ -18,7 +18,7 @@ export function calculateScore(
             actualPenaltyWinner === predictedPenaltyWinner
         )
     ) {
-        return 5;
+        return 6;
     }
 
     let score = 0;
