@@ -319,7 +319,7 @@ export default function PredictionDialog({
                                             </Typography>
                                         </Box>
                                     </Box>
-                                    {match.status === "completed" ? <Box
+                                    {match.status === "completed" || match.status === "locked" ? <Box
                                         sx={{
                                             px: 2,
                                             py: 1,
