@@ -279,7 +279,7 @@ export default function PredictionDialog({
                                                 fontSize={12}
                                                 color="rgba(255,255,255,.55)"
                                             >
-                                                🔒 Prediction Hidden
+                                                🔒 Hidden
                                             </Typography>
 
                                             {/* <Typography
