@@ -211,8 +211,7 @@ export default function PredictionDialog({
                                             </Typography>
                                         </Box>
                                     </Box>
-
-                                    <Box
+                                    {match.status === "completed" ? <Box
                                         sx={{
                                             px: 2,
                                             py: 1,
@@ -264,7 +263,34 @@ export default function PredictionDialog({
                                                     </Box>
                                                 );
                                             })()}
-                                    </Box>
+                                    </Box> :
+                                        <Box
+                                            sx={{
+                                                px: 2,
+                                                py: 1.2,
+                                                borderRadius: 3,
+                                                bgcolor: "rgba(255,255,255,.04)",
+                                                border: "1px dashed rgba(255,255,255,.15)",
+                                                textAlign: "center",
+                                                minWidth: 130,
+                                            }}
+                                        >
+                                            <Typography
+                                                fontSize={12}
+                                                color="rgba(255,255,255,.55)"
+                                            >
+                                                🔒 Prediction Hidden
+                                            </Typography>
+
+                                            <Typography
+                                                variant="caption"
+                                                color="rgba(255,255,255,.35)"
+                                            >
+                                                Revealed after full time
+                                            </Typography>
+                                        </Box>
+                                    }
+
                                 </Box>
                             </Box>
                         );
