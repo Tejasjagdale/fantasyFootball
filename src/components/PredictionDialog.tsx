@@ -44,6 +44,32 @@ export default function PredictionDialog({
         (team) => team.fifa_code === match.team2
     );
 
+    const homePredictions = predictions.filter((p) => {
+        const diff =
+            p.prediction.team1 - p.prediction.team2;
+
+        return diff > 0;
+    }).length;
+
+    const drawPredictions = predictions.filter((p) => {
+        return (
+            p.prediction.team1 ===
+            p.prediction.team2
+        );
+    }).length;
+
+    const awayPredictions = predictions.filter((p) => {
+        const diff =
+            p.prediction.team1 - p.prediction.team2;
+
+        return diff < 0;
+    }).length;
+
+    const total =
+        homePredictions +
+        drawPredictions +
+        awayPredictions;
+
     return (
         <Dialog
             open={open}
@@ -124,6 +150,88 @@ export default function PredictionDialog({
             </DialogTitle>
 
             <Divider />
+
+            <Box mt={2} mb={2} px={2}>
+
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    mb={1}
+                >
+                    <Box textAlign="left">
+                        <Typography fontWeight={700}>
+                            {homeTeam?.name_en}
+                        </Typography>
+
+                        <Typography color="#7ADD58">
+                            👥 {homePredictions}
+                        </Typography>
+                    </Box>
+
+                    <Box textAlign="center">
+                        <Typography fontWeight={700}>
+                            Draw
+                        </Typography>
+
+                        <Typography color="#D6D6D6">
+                            🤝 {drawPredictions}
+                        </Typography>
+                    </Box>
+
+                    <Box textAlign="right">
+                        <Typography fontWeight={700}>
+                            {awayTeam?.name_en}
+                        </Typography>
+
+                        <Typography color="#BCC2FF">
+                            👥 {awayPredictions}
+                        </Typography>
+                    </Box>
+                </Box>
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        height: 8,
+                        borderRadius: 20,
+                        overflow: "hidden",
+                        bgcolor: "#202632",
+                    }}
+                >
+
+                    <Box
+                        sx={{
+                            width: `${total
+                                    ? (homePredictions / total) * 100
+                                    : 0
+                                }%`,
+                            bgcolor: "#7CFC6B",
+                        }}
+                    />
+
+                    <Box
+                        sx={{
+                            width: `${total
+                                    ? (drawPredictions / total) * 100
+                                    : 0
+                                }%`,
+                            bgcolor: "#D6D6D6",
+                        }}
+                    />
+
+                    <Box
+                        sx={{
+                            width: `${total
+                                    ? (awayPredictions / total) * 100
+                                    : 0
+                                }%`,
+                            bgcolor: "#9FA8FF",
+                        }}
+                    />
+
+                </Box>
+
+            </Box>
 
             <DialogContent sx={{ p: 2 }}>
                 {loading && (
