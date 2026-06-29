@@ -282,12 +282,12 @@ export default function PredictionDialog({
                                                 🔒 Prediction Hidden
                                             </Typography>
 
-                                            <Typography
+                                            {/* <Typography
                                                 variant="caption"
                                                 color="rgba(255,255,255,.35)"
                                             >
                                                 Revealed after full time
-                                            </Typography>
+                                            </Typography> */}
                                         </Box>
                                     }
 
