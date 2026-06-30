@@ -561,9 +561,7 @@ export default function MatchPredictionCard({
                                             fontWeight={700}
                                         >
 
-                                            {match.result.penaltyWinner}
-                                             won on penalties
-
+                                            {`${match.result.penaltyWinner} won on penalties`}
                                         </Typography>
 
                                     </Stack>

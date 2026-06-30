@@ -25,27 +25,25 @@ export function calculateScore(
 
     let score = 0;
 
-    const winnerCorrect = actualWinner === predictedWinner;
-
     // 1. Correct winner
-    if (winnerCorrect) {
+    if (actualWinner === predictedWinner) {
         score += 2;
-
-        // 2. Correct goal difference (only if winner is correct)
-        const actualGoalDifference = Math.abs(actualHome - actualAway);
-        const predictedGoalDifference = Math.abs(predictedHome - predictedAway);
-
-        if (actualGoalDifference === predictedGoalDifference) {
-            score += 2;
-        }
     }
 
-    // 3. Exact home/team 1 score
+    // 2. Correct goal difference (signed)
+    const actualGoalDifference = actualHome - actualAway;
+    const predictedGoalDifference = predictedHome - predictedAway;
+
+    if (actualGoalDifference === predictedGoalDifference) {
+        score += 2;
+    }
+
+    // 3. Correct home goals
     if (actualHome === predictedHome) {
         score += 1;
     }
 
-    // 4. Exact away/team 2 score
+    // 4. Correct away goals
     if (actualAway === predictedAway) {
         score += 1;
     }
