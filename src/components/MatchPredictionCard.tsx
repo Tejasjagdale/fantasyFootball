@@ -562,7 +562,7 @@ export default function MatchPredictionCard({
                                         >
 
                                             {match.result.penaltyWinner}
-                                            won on penalties
+                                             won on penalties
 
                                         </Typography>
 
