@@ -319,7 +319,7 @@ export default function PredictionDialog({
 
                                     <Typography
                                         variant="body2"
-                                        sx={{ color: "rgba(255,255,255,.65)",fontWeight:600 ,fontSize :16 }}
+                                        sx={{ color: "rgba(255,255,255,.65)"}}
                                     >
                                         {winners.map(w => w.username).join(" • ")}
                                     </Typography>
@@ -328,15 +328,15 @@ export default function PredictionDialog({
 
                             <Box
                                 sx={{
-                                    px: 2,
-                                    py: .7,
+                                    px: 1,
+                                    py: .6,
                                     borderRadius: 10,
                                     bgcolor: "rgba(255,193,7,.12)",
                                     border: "1px solid rgba(255,193,7,.35)",
                                 }}
                             >
                                 <Typography
-                                    fontWeight={800}
+                                    fontWeight={600}
                                     color="#FFD54F"
                                 >
                                     ⭐ {highestScore}
