@@ -70,6 +70,23 @@ export default function PredictionDialog({
         drawPredictions +
         awayPredictions;
 
+    const sortedPredictions = [...predictions].sort(
+        (a, b) => (b.score ?? 0) - (a.score ?? 0)
+    );
+
+    const highestScore =
+        sortedPredictions.length > 0
+            ? sortedPredictions[0].score ?? 0
+            : 0;
+
+    // Only declare winners if someone scored at least 2 points
+    const winners =
+        highestScore >= 2
+            ? sortedPredictions.filter(
+                p => (p.score ?? 0) === highestScore
+            )
+            : [];
+
     return (
         <Dialog
             open={open}
@@ -202,8 +219,8 @@ export default function PredictionDialog({
                     <Box
                         sx={{
                             width: `${total
-                                    ? (homePredictions / total) * 100
-                                    : 0
+                                ? (homePredictions / total) * 100
+                                : 0
                                 }%`,
                             bgcolor: "#7CFC6B",
                         }}
@@ -212,8 +229,8 @@ export default function PredictionDialog({
                     <Box
                         sx={{
                             width: `${total
-                                    ? (drawPredictions / total) * 100
-                                    : 0
+                                ? (drawPredictions / total) * 100
+                                : 0
                                 }%`,
                             bgcolor: "#D6D6D6",
                         }}
@@ -222,8 +239,8 @@ export default function PredictionDialog({
                     <Box
                         sx={{
                             width: `${total
-                                    ? (awayPredictions / total) * 100
-                                    : 0
+                                ? (awayPredictions / total) * 100
+                                : 0
                                 }%`,
                             bgcolor: "#9FA8FF",
                         }}
@@ -255,8 +272,117 @@ export default function PredictionDialog({
                     </Box>
                 )}
 
+                {match.status === "completed" && (<Box
+                    sx={{
+                        mb: 2,
+                        px: 2.5,
+                        py: 2,
+                        borderRadius: 3,
+                        background: "linear-gradient(180deg,#182432,#101720)",
+                        border:
+                            winners.length > 0
+                                ? "1px solid rgba(255,215,0,.18)"
+                                : "1px solid rgba(255,255,255,.08)",
+                        position: "relative",
+                        overflow: "hidden",
+                    }}
+                >
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: 4,
+                            bgcolor:
+                                winners.length > 0
+                                    ? "#FFC107"
+                                    : "#607D8B",
+                        }}
+                    />
+
+                    {winners.length > 0 ? (
+                        <Box
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="space-between"
+                        >
+                            <Box display="flex" alignItems="center" gap={1.5}>
+                                <Typography fontSize={30}>🏆</Typography>
+
+                                <Box>
+                                    <Typography fontWeight={700} color="white">
+                                        {winners.length === 1
+                                            ? "Prediction Champion"
+                                            : "Joint Winners"}
+                                    </Typography>
+
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ color: "rgba(255,255,255,.65)",fontWeight:600 ,fontSize :16 }}
+                                    >
+                                        {winners.map(w => w.username).join(" • ")}
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            <Box
+                                sx={{
+                                    px: 2,
+                                    py: .7,
+                                    borderRadius: 10,
+                                    bgcolor: "rgba(255,193,7,.12)",
+                                    border: "1px solid rgba(255,193,7,.35)",
+                                }}
+                            >
+                                <Typography
+                                    fontWeight={800}
+                                    color="#FFD54F"
+                                >
+                                    ⭐ {highestScore}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Box
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="space-between"
+                        >
+                            <Box display="flex" alignItems="center" gap={1.5}>
+                                <Typography fontSize={30}>⚖️</Typography>
+
+                                <Box>
+                                    <Typography
+                                        fontWeight={700}
+                                        color="white"
+                                    >
+                                        No Winner
+                                    </Typography>
+
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ color: "rgba(255,255,255,.65)" }}
+                                    >
+                                        Nobody scored enough points for this match.
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            <Typography
+                                sx={{
+                                    color: "rgba(255,255,255,.45)",
+                                    fontWeight: 700,
+                                }}
+                            >
+                                —
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>)}
+
                 {!loading &&
-                    predictions.map((prediction) => {
+                    sortedPredictions.map((prediction) => {
                         const isMe = prediction.username === username;
 
                         return (
