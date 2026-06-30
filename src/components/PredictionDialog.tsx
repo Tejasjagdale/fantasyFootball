@@ -104,50 +104,141 @@ export default function PredictionDialog({
         >
             <DialogTitle
                 sx={{
-                    background: "linear-gradient(135deg,#00E676,#00BCD4)",
+                    position: "relative",
+                    overflow: "hidden",
+                    background:
+                        "linear-gradient(135deg,#0F172A 0%,#1E293B 45%,#111827 100%)",
                     color: "white",
                     py: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
+                    px: 3,
+                    borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(18px)",
+
+                    "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                            "radial-gradient(circle at top left, rgba(0,255,170,.18), transparent 45%), radial-gradient(circle at bottom right, rgba(0,140,255,.18), transparent 45%)",
+                        pointerEvents: "none",
+                    },
                 }}
             >
                 <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    gap={3}
-                    width="100%"
+                    sx={{
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 3,
+                    }}
                 >
-                    <Box display="flex" flexDirection="column" alignItems="center">
+                    {/* Home Team */}
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        sx={{ width: 110 }}
+                    >
                         <Avatar
                             src={homeTeam?.flag}
-                            sx={{ width: 56, height: 56 }}
+                            sx={{
+                                width: 54,
+                                height: 54,
+                                bgcolor: "#fff",
+                                p: 0,
+                                boxShadow: "0 0 18px rgba(0,230,118,.35)",
+                                border: "2px solid rgba(255,255,255,.15)",
+                            }}
                         />
-                        <Typography mt={1} fontWeight={700}>
+                        <Typography
+                            mt={1}
+                            fontWeight={700}
+                            fontSize={13}
+                            textAlign="center"
+                            noWrap
+                        >
                             {homeTeam?.name_en ?? match.team1}
                         </Typography>
                     </Box>
 
-                    <Box textAlign="center">
-                        <Typography fontWeight={800} fontSize={20}>
-                            {match.team1} vs {match.team2}
+                    {/* Center */}
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <Box
+                            sx={{
+                                width: 54,
+                                height: 54,
+                                borderRadius: "50%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background:
+                                    "linear-gradient(135deg,#00E676,#00BCD4)",
+                                color: "#fff",
+                                fontWeight: 900,
+                                fontSize: 16,
+                                letterSpacing: 1,
+                                boxShadow: "0 8px 24px rgba(0,188,212,.45)",
+                                border: "2px solid rgba(255,255,255,.12)",
+                            }}
+                        >
+                            VS
+                        </Box>
+
+                        <Typography
+                            mt={1.2}
+                            fontWeight={800}
+                            fontSize={17}
+                            letterSpacing={0.3}
+                        >
+                            {match.team1}{" "}
+                            <span style={{ opacity: 0.55 }}>vs</span>{" "}
+                            {match.team2}
                         </Typography>
 
                         <Typography
-                            variant="caption"
-                            sx={{ color: "rgba(255,255,255,.75)" }}
+                            sx={{
+                                mt: 0.3,
+                                fontSize: 11,
+                                color: "rgba(255,255,255,.65)",
+                                textTransform: "uppercase",
+                                letterSpacing: 1.2,
+                            }}
                         >
                             Community Predictions
                         </Typography>
                     </Box>
 
-                    <Box display="flex" flexDirection="column" alignItems="center">
+                    {/* Away Team */}
+                    <Box
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                        sx={{ width: 110 }}
+                    >
                         <Avatar
                             src={awayTeam?.flag}
-                            sx={{ width: 56, height: 56 }}
+                            sx={{
+                                width: 54,
+                                height: 54,
+                                bgcolor: "#fff",
+                                p: 0,
+                                boxShadow: "0 0 18px rgba(0,188,212,.35)",
+                                border: "2px solid rgba(255,255,255,.15)",
+                            }}
                         />
-                        <Typography mt={1} fontWeight={700}>
+                        <Typography
+                            mt={1}
+                            fontWeight={700}
+                            fontSize={13}
+                            textAlign="center"
+                            noWrap
+                        >
                             {awayTeam?.name_en ?? match.team2}
                         </Typography>
                     </Box>
@@ -156,13 +247,23 @@ export default function PredictionDialog({
                 <IconButton
                     onClick={onClose}
                     sx={{
-                        color: "white",
                         position: "absolute",
-                        right: 4,
-                        top: 4,
+                        right: 12,
+                        top: 12,
+                        width: 34,
+                        height: 34,
+                        color: "#fff",
+                        background: "rgba(255,255,255,.08)",
+                        backdropFilter: "blur(12px)",
+                        border: "1px solid rgba(255,255,255,.08)",
+                        transition: ".25s",
+                        "&:hover": {
+                            background: "rgba(255,255,255,.16)",
+                            transform: "rotate(90deg)",
+                        },
                     }}
                 >
-                    <CloseIcon />
+                    <CloseIcon fontSize="small" />
                 </IconButton>
             </DialogTitle>
 
@@ -319,7 +420,7 @@ export default function PredictionDialog({
 
                                     <Typography
                                         variant="body2"
-                                        sx={{ color: "rgba(255,255,255,.65)"}}
+                                        sx={{ color: "rgba(255,255,255,.65)" }}
                                     >
                                         {winners.map(w => w.username).join(" • ")}
                                     </Typography>
