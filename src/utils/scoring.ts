@@ -9,50 +9,43 @@ export function calculateScore(
     const isActualDraw = actualHome === actualAway;
     const isPredictedDraw = predictedHome === predictedAway;
 
-    // Perfect prediction
-    if (
-        actualHome === predictedHome &&
-        actualAway === predictedAway &&
-        (
-            !isActualDraw ||
-            actualPenaltyWinner === predictedPenaltyWinner
-        )
-    ) {
-        return 6;
-    }
+    // Determine actual winner
+    const actualWinner = isActualDraw
+        ? actualPenaltyWinner
+        : actualHome > actualAway
+            ? "HOME"
+            : "AWAY";
+
+    // Determine predicted winner
+    const predictedWinner = isPredictedDraw
+        ? predictedPenaltyWinner
+        : predictedHome > predictedAway
+            ? "HOME"
+            : "AWAY";
 
     let score = 0;
 
-    // Winner
-    if (isActualDraw) {
-        if (
-            isPredictedDraw &&
-            actualPenaltyWinner === predictedPenaltyWinner
-        ) {
-            score += 2;
-        }
-    } else {
-        const actualOutcome = Math.sign(actualHome - actualAway);
-        const predictedOutcome = Math.sign(predictedHome - predictedAway);
+    const winnerCorrect = actualWinner === predictedWinner;
 
-        if (actualOutcome === predictedOutcome) {
-            score += 2;
-        }
-    }
-
-    // Goal Difference
-    if (
-        !isActualDraw &&
-        (actualHome - actualAway) === (predictedHome - predictedAway)
-    ) {
+    // 1. Correct winner
+    if (winnerCorrect) {
         score += 2;
+
+        // 2. Correct goal difference (only if winner is correct)
+        const actualGoalDifference = Math.abs(actualHome - actualAway);
+        const predictedGoalDifference = Math.abs(predictedHome - predictedAway);
+
+        if (actualGoalDifference === predictedGoalDifference) {
+            score += 2;
+        }
     }
 
-    // Exact team scores
+    // 3. Exact home/team 1 score
     if (actualHome === predictedHome) {
         score += 1;
     }
 
+    // 4. Exact away/team 2 score
     if (actualAway === predictedAway) {
         score += 1;
     }
