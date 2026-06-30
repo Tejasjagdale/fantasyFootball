@@ -194,7 +194,9 @@ export default function AdminPage() {
     matchId: string,
     actualHome: number,
     actualAway: number,
-    actualPenaltyWinner: string | null
+    actualPenaltyWinner: string | null,
+    team1: string,
+    team2: string
   ) => {
 
     const snapshot = await getDocs(
@@ -216,9 +218,10 @@ export default function AdminPage() {
           actualPenaltyWinner,
           data.prediction.team1,
           data.prediction.team2,
-          data.prediction.penaltyWinner ?? null
+          data.prediction.penaltyWinner ?? null,
+          team1,
+          team2
         );
-
         await updateDoc(predictionDoc.ref, {
           score,
         });
@@ -263,7 +266,9 @@ export default function AdminPage() {
         editingMatch.id,
         s1,
         s2,
-        s1 === s2 ? penaltyWinner : null
+        s1 === s2 ? penaltyWinner : null,
+        editingMatch.team1,
+        editingMatch.team2
       );
     }
 
