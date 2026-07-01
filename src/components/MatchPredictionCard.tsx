@@ -584,72 +584,79 @@ export default function MatchPredictionCard({
                     direction="row"
                     spacing={2}
                 >
+{match.status === "completed" ? (
+    <Button
+        fullWidth
+        variant="outlined"
+        startIcon={<GroupsRoundedIcon />}
+        onClick={onViewPredictions}
+        sx={{
+            borderRadius: 3,
+            textTransform: "none",
+            height: 48,
+        }}
+    >
+        View Results
+    </Button>
+) : (
+    <>
+        <Button
+            fullWidth
+            size="large"
+            variant={submitted ? "outlined" : "contained"}
+            disabled={
+                submitted ||
+                saving ||
+                match.status !== "upcoming" ||
+                (draw && !prediction?.penaltyWinner)
+            }
+            startIcon={submitted ? <CheckCircleRoundedIcon /> : undefined}
+            onClick={onSubmit}
+            sx={{
+                borderRadius: 3,
+                fontWeight: 700,
+                textTransform: "none",
+                height: 48,
+            }}
+        >
+            {submitted
+                ? "Submitted"
+                : saving
+                    ? "Submitting..."
+                    : "Submit Prediction"}
+        </Button>
 
-                    <Button
-                        fullWidth
-                        size="large"
-                        variant={
-                            submitted
-                                ? "outlined"
-                                : "contained"
-                        }
-                        disabled={
-                            submitted ||
-                            saving ||
-                            match.status !== "upcoming" ||
-                            (draw && !prediction?.penaltyWinner)
-                        }
-                        startIcon={
-                            submitted
-                                ? <CheckCircleRoundedIcon />
-                                : undefined
-                        }
-                        onClick={onSubmit}
-                        sx={{
-                            borderRadius: 3,
-                            fontWeight: 700,
-                            textTransform: "none",
-                            height: 48,
-                        }}
-                    >
-                        {submitted
-                            ? "Submitted"
-                            : saving
-                                ? "Submitting..."
-                                : "Submit Prediction"}
-                    </Button>
+        {submitted && (
+            <Button
+                variant="outlined"
+                startIcon={<GroupsRoundedIcon />}
+                onClick={onViewPredictions}
+                sx={{
+                    borderRadius: 3,
+                    textTransform: "none",
+                    minWidth: 110,
+                }}
+            >
+                View
+            </Button>
+        )}
 
-                    {submitted && (
-                        <Button
-                            variant="outlined"
-                            startIcon={<GroupsRoundedIcon />}
-                            onClick={onViewPredictions}
-                            sx={{
-                                borderRadius: 3,
-                                textTransform: "none",
-                                minWidth: 110,
-                            }}
-                        >
-                            View
-                        </Button>
-                    )}
-
-                    {submitted &&
-                        match.status === "upcoming" && (
-                            <Button
-                                color="error"
-                                variant="outlined"
-                                onClick={onRevokePrediction}
-                                sx={{
-                                    borderRadius: 3,
-                                    textTransform: "none",
-                                    minWidth: 110,
-                                }}
-                            >
-                                Revoke
-                            </Button>
-                        )}
-
+        {submitted && match.status === "upcoming" && (
+            <Button
+                color="error"
+                variant="outlined"
+                onClick={onRevokePrediction}
+                sx={{
+                    borderRadius: 3,
+                    textTransform: "none",
+                    minWidth: 110,
+                }}
+            >
+                Revoke
+            </Button>
+        )}
+    </>
+)}
                 </Stack>
                 {match.status === "locked" && (
 
