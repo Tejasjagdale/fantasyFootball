@@ -13,8 +13,8 @@ import CloseIcon from "@mui/icons-material/Close";
 
 import teamsData from "../data/teams.json"; // <-- adjust path if needed
 
-import type { Match } from "../services/matchService";
 import type { Prediction } from "../hooks/usePredictions";
+import type { Match } from "../types/Leaderboard";
 
 interface Props {
     open: boolean;

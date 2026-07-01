@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../firebase/firebase";
-import type { Match } from "../services/matchService";
+import type { Match } from "../types/Leaderboard";
 
 export interface Prediction {
   username: string;
