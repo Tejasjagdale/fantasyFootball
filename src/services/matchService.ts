@@ -12,7 +12,6 @@ import {
 import { db } from "../firebase/firebase";
 import type { Match } from "../types/Leaderboard";
 
-
 const matchesRef = query(
   collection(db, "matches"),
   orderBy("createdOn", "desc")
