@@ -85,7 +85,7 @@ export default function LeaderboardDrawer({
 
         existing.predictions++;
 
-        if ((data.score ?? 0) === 5) {
+        if ((data.score ?? 0) === 6) {
           existing.exactPredictions++;
         }
 
