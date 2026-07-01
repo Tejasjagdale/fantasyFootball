@@ -12,11 +12,12 @@ import LeaderboardDrawer from "../components/LeaderboardDrawer";
 import MatchPredictionCard from "../components/MatchPredictionCard";
 import PredictionDialog from "../components/PredictionDialog";
 
-import { type Match, subscribeToMatches } from "../services/matchService";
+import { subscribeToMatches } from "../services/matchService";
 
 import usePredictions from "../hooks/usePredictions";
 import { useNavigate } from "react-router-dom";
 import GameRulesFab from "../components/GameRulesFab";
+import type { Match } from "../types/Leaderboard";
 
 
 export default function HomePage() {
@@ -40,6 +41,7 @@ export default function HomePage() {
 
       setLoadingMatches(false);
     });
+    
 
     return () => unsubscribe();
   }, []);

@@ -7,23 +7,11 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  Timestamp,
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import type { Match } from "../types/Leaderboard";
 
-export interface Match {
-  id?: string;
-  team1: string;
-  team2: string;
-  status: "upcoming" | "locked" | "completed";
-  createdOn?: Timestamp;
-  result: {
-    team1: number;
-    team2: number;
-    penaltyWinner: string | null;
-  } | null;
-}
 
 const matchesRef = query(
   collection(db, "matches"),

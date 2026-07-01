@@ -11,7 +11,6 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  Timestamp,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -44,30 +43,24 @@ import teams from "../data/teams.json";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { calculateScore } from "../utils/scoring";
+import type { Match, User } from "../types/Leaderboard";
 
-type Match = {
-  id: string;
-  team1: string;
-  team2: string;
-  status: string;
-  createdOn?: Timestamp;
-  result: {
-    team1: number;
-    team2: number;
-    penaltyWinner: string | null;
-  } | null;
-};
 
 type EditMode = "teams" | "result";
 
 export default function AdminPage() {
   const navigate = useNavigate();
+  const [users, setUsers] = useState<User[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [team1, setTeam1] = useState<any>(null);
   const [team2, setTeam2] = useState<any>(null);
   const [newUsername, setNewUsername] = useState("");
-
+  const role = localStorage.getItem("role");
+  const isSuperAdmin = role === "superadmin";
   // Edit dialog state
+  const [deleteUserOpen, setDeleteUserOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleteText, setDeleteText] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [editMode, setEditMode] = useState<EditMode>("teams");
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
@@ -79,6 +72,12 @@ export default function AdminPage() {
   // Delete confirm dialog state
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingMatch, setDeletingMatch] = useState<Match | null>(null);
+
+  const openDeleteUserDialog = (user: User) => {
+    setUserToDelete(user);
+    setDeleteText("");
+    setDeleteUserOpen(true);
+  };
 
   const loadMatches = async () => {
     const snapshot = await getDocs(collection(db, "matches"));
@@ -144,6 +143,10 @@ export default function AdminPage() {
   };
 
   const togglePredictionStatus = async (match: Match) => {
+    if (match.status === "locked" && !isSuperAdmin) {
+      return;
+    }
+
     const ref = doc(db, "matches", match.id);
 
     await updateDoc(ref, {
@@ -159,6 +162,17 @@ export default function AdminPage() {
     setDeleteOpen(true);
   };
 
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    await deleteDoc(doc(db, "users", userToDelete.id));
+
+    setDeleteUserOpen(false);
+    setUserToDelete(null);
+    setDeleteText("");
+
+    loadUsers();
+  };
   const confirmDelete = async () => {
     if (!deletingMatch) return;
     await deleteDoc(doc(db, "matches", deletingMatch.id));
@@ -284,6 +298,31 @@ export default function AdminPage() {
     navigate("/login")
   }
 
+  const loadUsers = async () => {
+    const snapshot = await getDocs(collection(db, "users"));
+
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as Omit<User, "id">),
+    }));
+
+    data.sort((a, b) => {
+      const t1 = a.lastSeen?.seconds ?? 0;
+      const t2 = b.lastSeen?.seconds ?? 0;
+      return t2 - t1;
+    });
+
+    setUsers(data);
+  };
+
+  useEffect(() => {
+    loadMatches();
+
+    if (isSuperAdmin) {
+      loadUsers();
+    }
+  }, []);
+
   return (
     <Box p={2} maxWidth={800} mx="auto">
       <Navbar onLeaderboardClick={() => { }}
@@ -294,6 +333,68 @@ export default function AdminPage() {
           Admin Panel
         </Typography>
       </Stack>
+
+      {isSuperAdmin && (
+        <Card variant="outlined" sx={{ mb: 4 }}>
+          <CardContent sx={{ py: 2 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography variant="h6" fontWeight={600}>
+                Users
+              </Typography>
+
+              <Chip
+                label={users.length}
+                size="small"
+                color="primary"
+              />
+            </Stack>
+
+            <Stack divider={<Divider />}>
+              {users.map((user) => (
+                <Stack
+                  key={user.id}
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  justifyContent="space-between"
+                  alignItems={{ xs: "flex-start", sm: "center" }}
+                  sx={{
+                    py: 1.5,
+                  }}
+                >
+                  <Box>
+                    <Typography fontWeight={600}>
+                      {user.username}
+                    </Typography>
+
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                    >
+                      {user.lastSeen
+                        ? user.lastSeen.toDate().toLocaleString()
+                        : "Never logged in"}
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    color="error"
+                    size="small"
+                    variant="outlined"
+                    onClick={() => openDeleteUserDialog(user)}
+                  >
+                    Delete
+                  </Button>
+                </Stack>
+              ))}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       <Card variant="outlined" sx={{ mb: 5 }}>
         <CardContent>
@@ -636,6 +737,55 @@ export default function AdminPage() {
           <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
           <Button variant="contained" color="error" onClick={confirmDelete}>
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteUserOpen}
+        onClose={() => setDeleteUserOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete User</DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <Typography>
+              You're about to permanently delete
+              <strong> {userToDelete?.username}</strong>.
+            </Typography>
+
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              This action cannot be undone.
+            </Typography>
+
+            <TextField
+              fullWidth
+              label='Type "DELETE" to confirm'
+              value={deleteText}
+              onChange={(e) => setDeleteText(e.target.value)}
+            />
+          </Stack>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteUserOpen(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            disabled={deleteText !== "DELETE"}
+            onClick={confirmDeleteUser}
+          >
+            Delete User
           </Button>
         </DialogActions>
       </Dialog>

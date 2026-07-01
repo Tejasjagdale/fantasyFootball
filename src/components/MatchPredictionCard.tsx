@@ -19,7 +19,7 @@ import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 
 import teams from "../data/teams.json";
-import type { Match } from "../services/matchService";
+import type { Match } from "../types/Leaderboard";
 
 interface Props {
     match: Match;
