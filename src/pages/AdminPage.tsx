@@ -15,6 +15,7 @@ import {
   where,
 } from "firebase/firestore";
 import {
+  Alert,
   Autocomplete,
   Box,
   Button,
@@ -27,7 +28,15 @@ import {
   DialogTitle,
   Divider,
   IconButton,
+  Paper,
+  Snackbar,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -44,6 +53,7 @@ import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { calculateScore } from "../utils/scoring";
 import type { Match, User } from "../types/Leaderboard";
+import { calculateSettlements } from "../utils/calculateSettlements";
 
 
 type EditMode = "teams" | "result";
@@ -56,8 +66,12 @@ export default function AdminPage() {
   const [team2, setTeam2] = useState<any>(null);
   const [newUsername, setNewUsername] = useState("");
   const role = localStorage.getItem("role");
+  const [entryFee, setEntryFee] = useState(20);
+  const [calculatingSettlement, setCalculatingSettlement] = useState(false);
   const isSuperAdmin = role === "superadmin";
   // Edit dialog state
+  const [viewPayoutsOpen, setViewPayoutsOpen] = useState(false);
+  const [payoutUsers, setPayoutUsers] = useState<User[]>([]);
   const [deleteUserOpen, setDeleteUserOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [deleteText, setDeleteText] = useState("");
@@ -69,9 +83,25 @@ export default function AdminPage() {
   const [editScore1, setEditScore1] = useState<string>("");
   const [editScore2, setEditScore2] = useState<string>("");
   const [penaltyWinner, setPenaltyWinner] = useState<string | null>(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error" | "warning" | "info",
+  });
   // Delete confirm dialog state
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingMatch, setDeletingMatch] = useState<Match | null>(null);
+
+  const showSnackbar = (
+    message: string,
+    severity: "success" | "error" | "warning" | "info"
+  ) => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
 
   const openDeleteUserDialog = (user: User) => {
     setUserToDelete(user);
@@ -91,6 +121,33 @@ export default function AdminPage() {
       return bTime - aTime;
     });
     setMatches(data);
+  };
+
+  const handleSettlement = async () => {
+    if (entryFee <= 0) {
+      showSnackbar("Please enter a valid entry fee.", "warning");
+      return;
+    }
+
+    try {
+      setCalculatingSettlement(true);
+
+      const result = await calculateSettlements(entryFee);
+
+      showSnackbar(
+        `Settlement Completed
+
+Matches Processed : ${result.matchesProcessed}
+Users Updated : ${result.usersUpdated}`
+        , "success");
+
+      loadUsers();
+    } catch (e) {
+      console.error(e);
+      showSnackbar("Settlement failed", "error");
+    } finally {
+      setCalculatingSettlement(false);
+    }
   };
 
   useEffect(() => {
@@ -118,6 +175,20 @@ export default function AdminPage() {
     setTeam1(null);
     setTeam2(null);
     loadMatches();
+  };
+
+  const loadPayouts = async () => {
+    const snapshot = await getDocs(collection(db, "users"));
+
+    const users = snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<User, "id">),
+      }))
+      .sort((a, b) => b.pendingAmount - a.pendingAmount);
+
+    setPayoutUsers(users);
+    setViewPayoutsOpen(true);
   };
 
   const createUser = async () => {
@@ -333,6 +404,60 @@ export default function AdminPage() {
           Admin Panel
         </Typography>
       </Stack>
+
+      <Card variant="outlined" sx={{ mb: 5 }}>
+        <CardContent>
+
+          <Typography
+            variant="h6"
+            fontWeight={600}
+            mb={3}
+          >
+            Daily Settlement
+          </Typography>
+
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            alignItems="center"
+          >
+
+            <TextField
+              type="number"
+              label="Entry Fee"
+              value={entryFee}
+              onChange={(e) =>
+                setEntryFee(Number(e.target.value))
+              }
+              sx={{ width: 180 }}
+            />
+
+            <Stack direction="row" spacing={2}>
+
+              <Button
+                variant="contained"
+                color="success"
+                disabled={calculatingSettlement}
+                onClick={handleSettlement}
+              >
+                {calculatingSettlement
+                  ? "Calculating..."
+                  : "Calculate Settlement"}
+              </Button>
+
+              <Button
+                variant="outlined"
+                onClick={loadPayouts}
+              >
+                View Payouts
+              </Button>
+
+            </Stack>
+
+          </Stack>
+
+        </CardContent>
+      </Card>
 
       {isSuperAdmin && (
         <Card variant="outlined" sx={{ mb: 4 }}>
@@ -789,6 +914,129 @@ export default function AdminPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog
+        open={viewPayoutsOpen}
+        onClose={() => setViewPayoutsOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+          }}
+        >
+          Yesterday's Payouts
+        </DialogTitle>
+
+        <DialogContent>
+
+          <TableContainer
+            component={Paper}
+            variant="outlined"
+            sx={{
+              mt: 1,
+            }}
+          >
+            <Table size="small">
+
+              <TableHead>
+
+                <TableRow>
+
+                  <TableCell>
+                    Username
+                  </TableCell>
+
+                  <TableCell align="right">
+                    Amount
+                  </TableCell>
+
+                </TableRow>
+
+              </TableHead>
+
+              <TableBody>
+
+                {payoutUsers.map((user) => {
+
+                  const positive =
+                    user.pendingAmount > 0;
+
+                  const negative =
+                    user.pendingAmount < 0;
+
+                  return (
+
+                    <TableRow key={user.id}>
+
+                      <TableCell>
+                        {user.username}
+                      </TableCell>
+
+                      <TableCell
+                        align="right"
+                        sx={{
+                          fontWeight: 700,
+                          color: positive
+                            ? "success.main"
+                            : negative
+                              ? "error.main"
+                              : "text.secondary",
+                        }}
+                      >
+
+                        {positive && "+"}
+
+                        ₹{user.pendingAmount.toFixed(4)}
+
+                      </TableCell>
+
+                    </TableRow>
+
+                  );
+                })}
+
+              </TableBody>
+
+            </Table>
+          </TableContainer>
+
+        </DialogContent>
+
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() =>
+          setSnackbar((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={() =>
+            setSnackbar((prev) => ({
+              ...prev,
+              open: false,
+            }))
+          }
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -11,6 +11,8 @@ export type User = {
   username: string;
   role: "user" | "admin" | "superadmin";
   lastSeen?: Timestamp;
+  pendingAmount: number;
+  lastSettledOn: Timestamp | null;
 };
 
 export type Match = {
