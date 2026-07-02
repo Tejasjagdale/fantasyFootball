@@ -960,7 +960,7 @@ Users Updated : ${result.usersUpdated}`
 
               <TableBody>
 
-                {payoutUsers.map((user) => {
+                {payoutUsers.filter((user) => user.role !== "superadmin" && user.role !== "admin").map((user) => {
 
                   const positive = user.pendingAmount > 0;
                   const negative = user.pendingAmount < 0;
