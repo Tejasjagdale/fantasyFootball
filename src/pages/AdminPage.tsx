@@ -941,7 +941,6 @@ Users Updated : ${result.usersUpdated}`
             <Table size="small">
 
               <TableHead>
-
                 <TableRow>
 
                   <TableCell>
@@ -952,19 +951,21 @@ Users Updated : ${result.usersUpdated}`
                     Amount
                   </TableCell>
 
-                </TableRow>
+                  <TableCell align="center">
+                    Status
+                  </TableCell>
 
+                </TableRow>
               </TableHead>
 
               <TableBody>
 
                 {payoutUsers.map((user) => {
 
-                  const positive =
-                    user.pendingAmount > 0;
+                  const positive = user.pendingAmount > 0;
+                  const negative = user.pendingAmount < 0;
 
-                  const negative =
-                    user.pendingAmount < 0;
+                  const settled = !!user.lastSettledOn;
 
                   return (
 
@@ -985,10 +986,26 @@ Users Updated : ${result.usersUpdated}`
                               : "text.secondary",
                         }}
                       >
-
                         {positive && "+"}
+                        ₹{user.pendingAmount.toFixed(2)}
+                      </TableCell>
 
-                        ₹{user.pendingAmount.toFixed(4)}
+                      <TableCell align="center">
+
+                        <Chip
+                          label={
+                            settled
+                              ? (positive ? "Received" : "Paid")
+                              : (positive ? "Awaiting Receipt" : "Awaiting Payment")
+                          }
+                          color={
+                            settled
+                              ? "success"
+                              : "warning"
+                          }
+                          size="small"
+                          variant={settled ? "filled" : "outlined"}
+                        />
 
                       </TableCell>
 
