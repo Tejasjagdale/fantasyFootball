@@ -57,7 +57,7 @@ export default function App() {
   }, [username, role]);
 
   const payWithUPI = () => {
-    const upiId = "tejasjagdale60@okaxis"; // Replace later
+    const upiId = "saurabh-gawas-1@okhdfcbank"; // Replace later
     const receiverName = "Fantasy Football";
 
     const amount = Math.abs(Number(pendingAmount)).toFixed(2);
